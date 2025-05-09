@@ -2,7 +2,7 @@
 % Please edit documentation in R/processPeptides.R
 \name{processPeptides}
 \alias{processPeptides}
-\title{Process MaxQuant peptide data and compute mean intensities across replicates}
+\title{Process and summarize MaxQuant peptide data}
 \usage{
 processPeptides(peptides_file, intensity_columns_file, protein_mapping_file)
 }
@@ -14,16 +14,22 @@ processPeptides(peptides_file, intensity_columns_file, protein_mapping_file)
 \item{protein_mapping_file}{Character. Path to the CSV file containing protein mapping information.}
 }
 \value{
-A list with two elements:
+A named list with the following elements:
 \itemize{
-\item \code{dt.peptides}: A \code{data.table} of filtered peptide data with intensity columns.
-\item \code{dt.peptides.long}: A \code{data.table} in long format with grouping columns and \code{mean.intensity}
+\item \code{dt.peptides}:  Filtered wide-format \code{data.table} of peptides with basic columns, intensity measurements, \code{Protein.name}, and \code{Protein.group}.
+\item \code{dt.peptides.mean}: Data.table with \code{Mean.Intensity} per group across replicates.
+\item \code{dt.peptides.mean.reps}: Data.table with \code{Intensity} per replicate per group.
+\item \code{dt.peptides.count}: Counts of peptides per group in \code{dt.peptides.mean}.
+\item \code{dt.peptides.count.reps}: Counts of peptides per replicate per group in \code{dt.peptides.mean.reps}.
+\item \code{dt.int_col}: The intensity column metadata read from \code{intensity_columns_file}.
+\item \code{grp_cols}: Character vector of grouping column names used.
+\item \code{peptides_select_col.basic}: Character vector of basic peptide columns selected initially.
 }
 }
 \description{
-Read peptide information from MaxQuant output file, intensity columns, and protein mapping,
-filter peptides, compute mean intensities across replicates, and return
-both a wide and a long \code{data.table}.
+Read peptide information from MaxQuant output file, intensity column meatadata, and protein mapping;
+filters out contaminants; computes per-replicate and per-group mean intensities;
+and counts peptides per replicate and per group .
 }
 \examples{
 \dontrun{
@@ -32,7 +38,7 @@ result <- processPeptides(
   intensity_columns_file = "../Data/Intensity_columns.csv",
   protein_mapping_file   = "../Data/protein_mapping.csv"
 )
-dt_wide <- result$dt.peptides
-dt_long <- result$dt.peptides.long
+dt.peptides      <- result$dt.peptides
+dt.peptides.mean <- result$dt.peptides.mean
 }
 }

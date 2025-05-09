@@ -1,17 +1,23 @@
-#' Process MaxQuant peptide data and compute mean intensities across replicates
+#' Process and summarize MaxQuant peptide data
 #'
 #' @description
-#' Read peptide information from MaxQuant output file, intensity columns, and protein mapping,
-#' filter peptides, compute mean intensities across replicates, and return
-#' both a wide and a long `data.table`.
+#' Read peptide information from MaxQuant output file, intensity column meatadata, and protein mapping;
+#' filters out contaminants; computes per-replicate and per-group mean intensities;
+#' and counts peptides per replicate and per group .
 #'
 #' @param peptides_file Character. Path to the MaxQuant peptide data file.
 #' @param intensity_columns_file Character. Path to the CSV file describing intensity columns and other metadata.
 #' @param protein_mapping_file Character. Path to the CSV file containing protein mapping information.
 #'
-#' @return A list with two elements:
-#' * `dt.peptides`: A `data.table` of filtered peptide data with intensity columns.
-#' * `dt.peptides.long`: A `data.table` in long format with grouping columns and `mean.intensity`
+#' @return A named list with the following elements:
+#' * `dt.peptides`:  Filtered wide-format `data.table` of peptides with basic columns, intensity measurements, `Protein.name`, and `Protein.group`.
+#' * `dt.peptides.mean`: Data.table with `Mean.Intensity` per group across replicates.
+#' * `dt.peptides.mean.reps`: Data.table with `Intensity` per replicate per group.
+#' * `dt.peptides.count`: Counts of peptides per group in `dt.peptides.mean`.
+#' * `dt.peptides.count.reps`: Counts of peptides per replicate per group in `dt.peptides.mean.reps`.
+#' * `dt.int_col`: The intensity column metadata read from `intensity_columns_file`.
+#' * `grp_cols`: Character vector of grouping column names used.
+#' * `peptides_select_col.basic`: Character vector of basic peptide columns selected initially.
 #'
 #' @import data.table
 #' @export
@@ -23,8 +29,8 @@
 #'   intensity_columns_file = "../Data/Intensity_columns.csv",
 #'   protein_mapping_file   = "../Data/protein_mapping.csv"
 #' )
-#' dt_wide <- result$dt.peptides
-#' dt_long <- result$dt.peptides.long
+#' dt.peptides      <- result$dt.peptides
+#' dt.peptides.mean <- result$dt.peptides.mean
 #' }
 processPeptides <- function(peptides_file,
                             intensity_columns_file,
@@ -78,44 +84,77 @@ processPeptides <- function(peptides_file,
     # fill missing mappings
     is.na(Protein.name),  Protein.name  := "Others"
   ][
-    is.na(Protein.group), Protein.group := "whey"
-  ]
+    is.na(Protein.group), Protein.group := "Whey"
+  ][,
+    `:=`(
+      Protein.name  = factor(Protein.name,
+                             levels = c(
+                               unique(dt.p_map[["Protein.name"]]),
+                               "Others"
+                               )),
+      Protein.group = factor(Protein.group,
+                             levels = c(
+                               unique(dt.p_map[["Protein.group"]])
+                             ))
+    )]
 
-  # 5. Identify grouping columns (exclude metadata cols)
+  # 5. Identify grouping columns (exclude Replicate cols)
   grp_cols <- setdiff(names(dt.int_col), c("Intensity.column", "Replicate"))
 
-  # 6. Build nested list of replicates at deepest level
+  # 6. Build nested lists
+  # deepest level is list(mean = <mean DT>, reps = <each rep DT>)
   build_nested_list <- function(meta, grp_cols) {
     this_col <- grp_cols[1]
     vals     <- unique(meta[[this_col]])
     out      <- setNames(vector("list", length(vals)), as.character(vals))
 
-    if (length(grp_cols) > 1) {
+    if (length(grp_cols) > 1) { #more levels need to go
       for (v in vals) {
         sub_meta <- meta[get(this_col) == v]
         out[[as.character(v)]] <- build_nested_list(sub_meta, grp_cols[-1])
       }
-    } else {
+    } else { #at the deepest level
       for (v in vals) {
+        # 1) prepare the table for mean intensity
         sub_meta  <- meta[get(this_col) == v]
         cols      <- c(peptides_select_col.basic,
+                       "Protein.name",
+                       "Protein.group",
                        sub_meta[["Intensity.column"]])
-        dt.rep    <- dt.peptides[, ..cols]
+        dt.mean    <- dt.peptides[, ..cols]
+
+        # 2) rename to R1…Rn
         n_reps    <- length(sub_meta[["Intensity.column"]])
         rep_names <- paste0("R", seq_len(n_reps))
-        setnames(dt.rep,
+        setnames(dt.mean,
                  old = cols,
-                 new = c(peptides_select_col.basic, rep_names))
+                 new = c(peptides_select_col.basic,
+                         "Protein.name",
+                         "Protein.group",
+                         rep_names))
 
-        # keep peptides with at least half replicates >0
-        keep_rows <- rowSums(dt.rep[, ..rep_names] > 0) >= ceiling(n_reps/2)
-        dt.rep    <- dt.rep[keep_rows]
+        # 3) keep peptides with at least half replicates >0
+        keep_rows <- rowSums(dt.mean[, ..rep_names] > 0) >= ceiling(n_reps/2)
+        dt.mean    <- dt.mean[keep_rows]
 
-        # mean intensity of non-zero replicates
-        dt.rep[, mean.intensity := rowSums(.SD) / rowSums(.SD > 0),
+        # 4) mean intensity of non-zero replicates
+        dt.mean[, Mean.Intensity := rowSums(.SD) / rowSums(.SD > 0),
                .SDcols = rep_names]
 
-        out[[as.character(v)]] <- dt.rep
+        # 5) make the table of each replicate
+        dt.rep <- melt(
+          copy(dt.mean),
+          id.vars       = c(peptides_select_col.basic,
+                            "Protein.name","Protein.group"),
+          measure.vars = rep_names,
+          variable.name = "Replicate",
+          value.name    = "Intensity"
+        )
+        # drop any NA or zero intensities
+        dt.rep <- dt.rep[!is.na(Intensity) & Intensity > 0]
+
+        out[[as.character(v)]] <- list(mean = dt.mean,
+                                       reps = dt.rep)
       }
     }
     out
@@ -124,29 +163,61 @@ processPeptides <- function(peptides_file,
   nested.peptides <- build_nested_list(dt.int_col, grp_cols)
 
   # 7. Flatten nested list back to long data.table
-  flatten_nested <- function(nlist, grp_cols) {
+  flatten_nested <- function(nl, grp_cols, leaf_name) {
     out <- list()
     rec <- function(node, keys = list()) {
-      if (inherits(node, "data.table")) {
-        dt <- copy(node)
-        for (nm in names(keys)) dt[, (nm) := keys[[nm]]]
+      # if at a leaf, it will be a list with an element called leaf_name
+      if (is.data.table(node[[leaf_name]])) {
+        dt <- copy(node[[leaf_name]])
+        # attach the grouping columns
+        for (nm in names(keys)) {
+          dt[, (nm) := keys[[nm]]]
+        }
         out[[length(out) + 1]] <<- dt
       } else {
+        # still in the nested-list world: descend one level
         this_group <- grp_cols[length(keys) + 1]
         for (val in names(node)) {
-          rec(node[[val]], c(keys, setNames(list(val), this_group)))
+          rec(node[[val]],
+              c(keys, setNames(list(val), this_group)))
         }
       }
     }
-    rec(nlist)
+    rec(nl)
     rbindlist(out, fill = TRUE)
   }
 
-  dt.peptides.long <- flatten_nested(nested.peptides, grp_cols)
+  dt.peptides.mean <- flatten_nested(nested.peptides, grp_cols, "mean")
+  dt.peptides.mean.reps <- flatten_nested(nested.peptides, grp_cols, "reps")
 
-  # 8. Return both wide and long tables
+  # 8. Convert grouping columns to ordered factors based on original file order
+  for (col in grp_cols) {
+    levels_vec <- unique(dt.int_col[[col]])
+    dt.peptides.mean[, (col) := factor(get(col), levels = levels_vec)]
+    dt.peptides.mean.reps[, (col) := factor(get(col), levels = levels_vec)]
+  }
+
+  # 9. compute count of peptides per Length, Protein.name, Protein.group, grp_cols, annd/or Replicate
+  dt.peptides.count <- dt.peptides.mean[
+    , .(Count = .N)
+    , by = c("Length", "Protein.name", "Protein.group", grp_cols)
+  ]
+  dt.peptides.count.reps <- dt.peptides.mean.reps[
+    , .(Count = .N)
+    , by = c("Length", "Protein.name", "Protein.group", "Replicate", grp_cols)
+  ]
+
+
+  # 9. Return outputs
   list(
-    dt.peptides      = dt.peptides,
-    dt.peptides.long = dt.peptides.long
+    dt.peptides               = dt.peptides,
+    dt.peptides.mean          = dt.peptides.mean,
+    dt.peptides.mean.reps     = dt.peptides.mean.reps,
+    dt.peptides.count         = dt.peptides.count,
+    dt.peptides.count.reps    = dt.peptides.count.reps,
+    dt.int_col                = dt.int_col,
+    grp_cols                  = grp_cols,
+    peptides_select_col.basic = peptides_select_col.basic
+
   )
 }
