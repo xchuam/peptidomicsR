@@ -11,10 +11,10 @@
 #'
 #' @return A named list with the following elements:
 #' * `dt.peptides`:  Filtered wide-format `data.table` of peptides with basic columns, intensity measurements, `Protein.name`, and `Protein.group`.
-#' * `dt.peptides.mean`: Data.table with `Mean.Intensity` per group across replicates.
-#' * `dt.peptides.mean.reps`: Data.table with `Intensity` per replicate per group.
-#' * `dt.peptides.count`: Counts of peptides per group in `dt.peptides.mean`.
-#' * `dt.peptides.count.reps`: Counts of peptides per replicate per group in `dt.peptides.mean.reps`.
+#' * `dt.peptides.int`: Data.table with `Mean.Intensity` per group across replicates.
+#' * `dt.peptides.int.reps`: Data.table with `Intensity` per replicate per group.
+#' * `dt.peptides.count`: Counts of peptides per group in `dt.peptides.int`.
+#' * `dt.peptides.count.reps`: Counts of peptides per replicate per group in `dt.peptides.int.reps`.
 #' * `dt.int_col`: The intensity column metadata read from `intensity_columns_file`.
 #' * `grp_cols`: Character vector of grouping column names used.
 #' * `peptides_select_col.basic`: Character vector of basic peptide columns selected initially.
@@ -30,7 +30,7 @@
 #'   protein_mapping_file   = "../Data/protein_mapping.csv"
 #' )
 #' dt.peptides      <- result$dt.peptides
-#' dt.peptides.mean <- result$dt.peptides.mean
+#' dt.peptides.int  <- result$dt.peptides.int
 #' }
 processPeptides <- function(peptides_file,
                             intensity_columns_file,
@@ -187,22 +187,22 @@ processPeptides <- function(peptides_file,
     rbindlist(out, fill = TRUE)
   }
 
-  dt.peptides.mean <- flatten_nested(nested.peptides, grp_cols, "mean")
-  dt.peptides.mean.reps <- flatten_nested(nested.peptides, grp_cols, "reps")
+  dt.peptides.int <- flatten_nested(nested.peptides, grp_cols, "mean")
+  dt.peptides.int.reps <- flatten_nested(nested.peptides, grp_cols, "reps")
 
   # 8. Convert grouping columns to ordered factors based on original file order
   for (col in grp_cols) {
     levels_vec <- unique(dt.int_col[[col]])
-    dt.peptides.mean[, (col) := factor(get(col), levels = levels_vec)]
-    dt.peptides.mean.reps[, (col) := factor(get(col), levels = levels_vec)]
+    dt.peptides.int[, (col) := factor(get(col), levels = levels_vec)]
+    dt.peptides.int.reps[, (col) := factor(get(col), levels = levels_vec)]
   }
 
   # 9. compute count of peptides per Length, Protein.name, Protein.group, grp_cols, annd/or Replicate
-  dt.peptides.count <- dt.peptides.mean[
-    , .(Count = .N)
+  dt.peptides.count <- dt.peptides.int[
+    , .(Mean.Count = .N)
     , by = c("Length", "Protein.name", "Protein.group", grp_cols)
   ]
-  dt.peptides.count.reps <- dt.peptides.mean.reps[
+  dt.peptides.count.reps <- dt.peptides.int.reps[
     , .(Count = .N)
     , by = c("Length", "Protein.name", "Protein.group", "Replicate", grp_cols)
   ]
@@ -211,8 +211,8 @@ processPeptides <- function(peptides_file,
   # 9. Return outputs
   list(
     dt.peptides               = dt.peptides,
-    dt.peptides.mean          = dt.peptides.mean,
-    dt.peptides.mean.reps     = dt.peptides.mean.reps,
+    dt.peptides.int           = dt.peptides.int,
+    dt.peptides.int.reps      = dt.peptides.int.reps,
     dt.peptides.count         = dt.peptides.count,
     dt.peptides.count.reps    = dt.peptides.count.reps,
     dt.int_col                = dt.int_col,

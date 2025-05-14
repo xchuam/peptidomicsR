@@ -12,9 +12,9 @@ Roxygen: list(markdown = TRUE)
 Depends: 
     R (>= 4.0.0)
 Imports:
-    dplyr,
-    tidyr,
-    ggplot2
+    ggplot2,
+    scales,
+    data.table
 Suggests:
     testthat (>= 3.0.0),
     knitr,

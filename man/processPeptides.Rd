@@ -17,10 +17,10 @@ processPeptides(peptides_file, intensity_columns_file, protein_mapping_file)
 A named list with the following elements:
 \itemize{
 \item \code{dt.peptides}:  Filtered wide-format \code{data.table} of peptides with basic columns, intensity measurements, \code{Protein.name}, and \code{Protein.group}.
-\item \code{dt.peptides.mean}: Data.table with \code{Mean.Intensity} per group across replicates.
-\item \code{dt.peptides.mean.reps}: Data.table with \code{Intensity} per replicate per group.
-\item \code{dt.peptides.count}: Counts of peptides per group in \code{dt.peptides.mean}.
-\item \code{dt.peptides.count.reps}: Counts of peptides per replicate per group in \code{dt.peptides.mean.reps}.
+\item \code{dt.peptides.int}: Data.table with \code{Mean.Intensity} per group across replicates.
+\item \code{dt.peptides.int.reps}: Data.table with \code{Intensity} per replicate per group.
+\item \code{dt.peptides.count}: Counts of peptides per group in \code{dt.peptides.int}.
+\item \code{dt.peptides.count.reps}: Counts of peptides per replicate per group in \code{dt.peptides.int.reps}.
 \item \code{dt.int_col}: The intensity column metadata read from \code{intensity_columns_file}.
 \item \code{grp_cols}: Character vector of grouping column names used.
 \item \code{peptides_select_col.basic}: Character vector of basic peptide columns selected initially.
@@ -39,6 +39,6 @@ result <- processPeptides(
   protein_mapping_file   = "../Data/protein_mapping.csv"
 )
 dt.peptides      <- result$dt.peptides
-dt.peptides.mean <- result$dt.peptides.mean
+dt.peptides.int  <- result$dt.peptides.int
 }
 }
