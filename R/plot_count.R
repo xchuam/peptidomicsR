@@ -5,7 +5,8 @@
 #' with:
 #' * User‐defined inclusion filters on any grouping columns,
 #' * Dynamic x‐axis chosen from grouping variables,
-#' * Optional log₁₀ transformation of the y‐axis with scientific labels,
+#' * Flexible coloring by protein group or protein name,
+#' * Optional scientific notationn of the y‐axis,
 #' * Flexible faceting by one or more grouping variables.
 #'
 #' @param result List. Output of \code{processPeptides()}, containing at least:
@@ -18,6 +19,8 @@
 #' @param x_var Character. Name of the grouping column to use on the x‐axis.
 #'   Must be one of \code{result$grp_cols} (and for \code{type="reps"} may also be \code{"Replicate"}).
 #'   Defaults to the first element of \code{result$grp_cols}.
+#' @param color_by Character. Fill aesthetic: \code{"Protein.group"}, \code{"Protein.name"}, or \code{"none"}.
+#'   Default: \code{"Protein.group"}.
 #' @param filter_params Named list, or \code{NULL}.  Each element’s name is a grouping column,
 #'   and its value is a vector of values to include.  Multiple names impose an AND filter.
 #'   For example: \code{list(Lipid = c("N","S"), Digest.stage = "G")}
@@ -44,10 +47,11 @@
 #' # 1) Simple replicate‐level, default x, default facet="Replicate"
 #' p1 <- plot_count(result, type = "reps")
 #'
-#' # 2) Simple mean‐level, x = Lipid
+#' # 2) Simple mean‐level, x = Lipid, color by Protein.name
 #' p2 <- plot_count(result,
 #'                 type           = "mean",
-#'                 x_var          = "Lipid")
+#'                 x_var          = "Lipid",
+#'                 color_by       = "Protein.name")
 #'
 #' # 3) Filter Lipid == "N" AND Digest.stage == "I", scientific notation y, default mean‐level
 #' p3 <- plot_count(
@@ -67,11 +71,13 @@
 #'
 #' @import ggplot2
 #' @import data.table
+#' @import ggpubr
 #' @importFrom scales scientific_format
 #' @export
 plot_count <- function(result,
                        type           = c("mean", "reps"),
                        x_var          = NULL,
+                       color_by = "Protein.group",
                        filter_params  = NULL,
                        facet_rows     = NULL,
                        facet_cols     = NULL,
@@ -97,6 +103,11 @@ plot_count <- function(result,
     if (!x_var %in% grp_cols) {
       stop("For type = 'mean', x_var must be one of result$grp_cols")
     }
+  }
+
+  # default color_by
+  if (!color_by %in% c("Protein.group","Protein.name","none")) {
+    stop("color_by must be 'Protein.group', 'Protein.name', or 'none'.")
   }
 
   # apply filters
@@ -127,10 +138,19 @@ plot_count <- function(result,
   y_var <- if (type == "reps") "Count" else "Mean.Count"
 
   # build the plot
-  p <- ggplot(dt, aes(x = .data[[x_var]],
-                      y = .data[[y_var]],
-                      fill = .data$Protein.group)) +
-    geom_bar(stat = "identity", position = "stack")
+  if (color_by == "none") {
+    p <- ggplot(dt, aes(x = .data[[x_var]],
+                        y = .data[[y_var]])) +
+      geom_bar(stat = "identity", position = "stack",fill = def_color)+
+      theme_pubr()
+  } else {
+    p <- ggplot(dt, aes(x = .data[[x_var]],
+                        y = .data[[y_var]],
+                        fill = .data[[color_by]])) +
+      geom_bar(stat = "identity", position = "stack") +
+      scale_fill_manual(values = protein_color)+
+      theme_pubr()
+  }
 
   # optional log scale
   if (scientific_10_y) {

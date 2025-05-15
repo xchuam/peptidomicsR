@@ -14,7 +14,8 @@ Depends:
 Imports:
     ggplot2,
     scales,
-    data.table
+    data.table,
+    ggpubr
 Suggests:
     testthat (>= 3.0.0),
     knitr,

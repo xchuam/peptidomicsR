@@ -8,6 +8,7 @@ plot_count(
   result,
   type = c("mean", "reps"),
   x_var = NULL,
+  color_by = "Protein.group",
   filter_params = NULL,
   facet_rows = NULL,
   facet_cols = NULL,
@@ -27,6 +28,9 @@ plot_count(
 \item{x_var}{Character. Name of the grouping column to use on the x‐axis.
 Must be one of \code{result$grp_cols} (and for \code{type="reps"} may also be \code{"Replicate"}).
 Defaults to the first element of \code{result$grp_cols}.}
+
+\item{color_by}{Character. Fill aesthetic: \code{"Protein.group"}, \code{"Protein.name"}, or \code{"none"}.
+Default: \code{"Protein.group"}.}
 
 \item{filter_params}{Named list, or \code{NULL}.  Each element’s name is a grouping column,
 and its value is a vector of values to include.  Multiple names impose an AND filter.
@@ -54,7 +58,8 @@ with:
 \itemize{
 \item User‐defined inclusion filters on any grouping columns,
 \item Dynamic x‐axis chosen from grouping variables,
-\item Optional log₁₀ transformation of the y‐axis with scientific labels,
+\item Flexible coloring by protein group or protein name,
+\item Optional scientific notationn of the y‐axis,
 \item Flexible faceting by one or more grouping variables.
 }
 }
@@ -68,10 +73,11 @@ result <- processPeptides(
 # 1) Simple replicate‐level, default x, default facet="Replicate"
 p1 <- plot_count(result, type = "reps")
 
-# 2) Simple mean‐level, x = Lipid
+# 2) Simple mean‐level, x = Lipid, color by Protein.name
 p2 <- plot_count(result,
                 type           = "mean",
-                x_var          = "Lipid")
+                x_var          = "Lipid",
+                color_by       = "Protein.name")
 
 # 3) Filter Lipid == "N" AND Digest.stage == "I", scientific notation y, default mean‐level
 p3 <- plot_count(
