@@ -5,9 +5,15 @@
 #' filters out contaminants; computes per-replicate and per-group mean intensities;
 #' and counts peptides per replicate and per group .
 #'
-#' @param peptides_file Character. Path to the MaxQuant peptide data file.
-#' @param intensity_columns_file Character. Path to the CSV file describing intensity columns and other metadata.
-#' @param protein_mapping_file Character. Path to the CSV file containing protein mapping information.
+#' @param peptides_file
+#'   A \code{character} specifying the path to the MaxQuant peptide data file,
+#'   or a \code{data.frame}/\code{data.table} already loaded in R.
+#' @param intensity_columns_file
+#'   A \code{character} specifying the path to the CSV of intensity-column metadata,
+#'   or a \code{data.frame}/\code{data.table} already loaded in R.
+#' @param protein_mapping_file
+#'   A \code{character} specifying the path to the CSV of protein mapping information,
+#'   or a \code{data.frame}/\code{data.table} already loaded in R.
 #'
 #' @return A named list with the following elements:
 #' * `dt.peptides`:  Filtered wide-format `data.table` of peptides with basic columns, intensity measurements, `Protein.name`, and `Protein.group`.
@@ -24,13 +30,23 @@
 #'
 #' @examples
 #' \dontrun{
+#' # 1) Reading from files
 #' result <- processPeptides(
 #'   peptides_file          = "../Data/peptides.txt",
 #'   intensity_columns_file = "../Data/Intensity_columns.csv",
 #'   protein_mapping_file   = "../Data/protein_mapping.csv"
 #' )
-#' dt.peptides      <- result$dt.peptides
-#' dt.peptides.int  <- result$dt.peptides.int
+#'
+#' # 2) Reading from in-memory files
+#' library(data.table)
+#' dt_pep <- fread("../Data/peptides.txt", integer64 = "double")
+#' dt_lfq <- fread("../Data/Intensity_columns.csv")
+#' dt_map <- fread("../Data/protein_mapping.csv")
+#' result_2 <- processPeptides(
+#'   peptides_file          = dt_pep,
+#'   intensity_columns_file = dt_lfq,
+#'   protein_mapping_file   = dt_map
+#' )
 #' }
 processPeptides <- function(peptides_file,
                             intensity_columns_file,
@@ -38,10 +54,48 @@ processPeptides <- function(peptides_file,
   # ensure data.table is available
   requireNamespace("data.table", quietly = TRUE)
 
-  # 1. Read input files
-  dt.peptides <- fread(peptides_file, integer64 = "double")
-  dt.int_col  <- fread(intensity_columns_file)
-  dt.p_map    <- fread(protein_mapping_file)
+  # 1. Read inputs: allow a path or an in-memory table
+  # peptides
+  if (is.character(peptides_file) && length(peptides_file) == 1) {
+    if (!file.exists(peptides_file)) {
+      stop("peptides_file path does not exist: ", peptides_file)
+    }
+    dt.peptides <- fread(peptides_file, integer64 = "double")
+  } else if (data.table::is.data.table(peptides_file)) {
+    dt.peptides <- data.table::copy(peptides_file)
+  } else if (is.data.frame(peptides_file)) {
+    dt.peptides <- data.table::as.data.table(peptides_file)
+  } else {
+    stop("`peptides_file` must be either a file path or a data.frame/data.table")
+  }
+
+  # intensity columns metadata
+  if (is.character(intensity_columns_file) && length(intensity_columns_file) == 1) {
+    if (!file.exists(intensity_columns_file)) {
+      stop("intensity_columns_file path does not exist: ", intensity_columns_file)
+    }
+    dt.int_col <- fread(intensity_columns_file)
+  } else if (data.table::is.data.table(intensity_columns_file)) {
+    dt.int_col <- data.table::copy(intensity_columns_file)
+  } else if (is.data.frame(intensity_columns_file)) {
+    dt.int_col <- data.table::as.data.table(intensity_columns_file)
+  } else {
+    stop("`intensity_columns_file` must be either a file path or a data.frame/data.table")
+  }
+
+  # protein mapping
+  if (is.character(protein_mapping_file) && length(protein_mapping_file) == 1) {
+    if (!file.exists(protein_mapping_file)) {
+      stop("protein_mapping_file path does not exist: ", protein_mapping_file)
+    }
+    dt.p_map <- fread(protein_mapping_file)
+  } else if (data.table::is.data.table(protein_mapping_file)) {
+    dt.p_map <- data.table::copy(protein_mapping_file)
+  } else if (is.data.frame(protein_mapping_file)) {
+    dt.p_map <- data.table::as.data.table(protein_mapping_file)
+  } else {
+    stop("`protein_mapping_file` must be either a file path or a data.frame/data.table")
+  }
 
   # 2. Clean column names: replace spaces with dots
   setnames(dt.peptides,

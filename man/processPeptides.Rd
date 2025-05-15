@@ -7,11 +7,14 @@
 processPeptides(peptides_file, intensity_columns_file, protein_mapping_file)
 }
 \arguments{
-\item{peptides_file}{Character. Path to the MaxQuant peptide data file.}
+\item{peptides_file}{A \code{character} specifying the path to the MaxQuant peptide data file,
+or a \code{data.frame}/\code{data.table} already loaded in R.}
 
-\item{intensity_columns_file}{Character. Path to the CSV file describing intensity columns and other metadata.}
+\item{intensity_columns_file}{A \code{character} specifying the path to the CSV of intensity-column metadata,
+or a \code{data.frame}/\code{data.table} already loaded in R.}
 
-\item{protein_mapping_file}{Character. Path to the CSV file containing protein mapping information.}
+\item{protein_mapping_file}{A \code{character} specifying the path to the CSV of protein mapping information,
+or a \code{data.frame}/\code{data.table} already loaded in R.}
 }
 \value{
 A named list with the following elements:
@@ -33,12 +36,22 @@ and counts peptides per replicate and per group .
 }
 \examples{
 \dontrun{
+# 1) Reading from files
 result <- processPeptides(
   peptides_file          = "../Data/peptides.txt",
   intensity_columns_file = "../Data/Intensity_columns.csv",
   protein_mapping_file   = "../Data/protein_mapping.csv"
 )
-dt.peptides      <- result$dt.peptides
-dt.peptides.int  <- result$dt.peptides.int
+
+# 2) Reading from in-memory files
+library(data.table)
+dt_pep <- fread("../Data/peptides.txt", integer64 = "double")
+dt_lfq <- fread("../Data/Intensity_columns.csv")
+dt_map <- fread("../Data/protein_mapping.csv")
+result_2 <- processPeptides(
+  peptides_file          = dt_pep,
+  intensity_columns_file = dt_lfq,
+  protein_mapping_file   = dt_map
+)
 }
 }
