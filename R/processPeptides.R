@@ -193,7 +193,11 @@ processPeptides <- function(peptides_file,
 
         # 4) mean intensity of non-zero replicates
         dt.mean[, Mean.Intensity := rowSums(.SD) / rowSums(.SD > 0),
-               .SDcols = rep_names]
+               .SDcols = rep_names
+               ][
+                 #calculate log10 value
+                 ,log10.Mean.Intensity := log10(Mean.Intensity)
+               ]
 
         # 5) make the table of each replicate
         dt.rep <- melt(
@@ -206,6 +210,10 @@ processPeptides <- function(peptides_file,
         )
         # drop any NA or zero intensities
         dt.rep <- dt.rep[!is.na(Intensity) & Intensity > 0]
+        #calculate log10 value
+        dt.rep[
+          ,log10.Intensity := log10(Intensity)
+        ]
 
         out[[as.character(v)]] <- list(mean = dt.mean,
                                        reps = dt.rep)
