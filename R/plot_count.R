@@ -126,14 +126,6 @@ plot_count <- function(result,
     facet_cols <- "Replicate"
   }
 
-  # warn if faceting replicate data without Replicate
-  if (type == "reps" &&
-      !is.null(facet_cols) &&
-      !grepl("Replicate", facet_cols) &&
-      (is.null(facet_rows) || !grepl("Replicate", facet_rows))) {
-    warning("When plotting replicate-level data, neither facet_rows nor facet_cols includes 'Replicate'; replicates may be aggregated.")
-  }
-
   # set y variable
   y_var <- if (type == "reps") "Count" else "Mean.Count"
 
@@ -164,6 +156,27 @@ plot_count <- function(result,
     rows <- if (!is.null(facet_rows)) facet_rows else "."
     cols <- if (!is.null(facet_cols)) facet_cols else "."
     p <- p + facet_grid(as.formula(paste(rows, "~", cols)))
+  }
+
+  # warn if any multi‐level group‐vars aren’t being distinguished anywher
+  # build the full set of group‐vars we’d ideally split on
+  vars_distinct <- grp_cols
+  if (type == "reps") vars_distinct <- c(vars_distinct, "Replicate")
+  # drop any that no longer vary in the data (only one unique value)
+  vars_vary <- vars_distinct[
+    sapply(vars_distinct, function(v) length(unique(dt[[v]])) > 1)]
+  # collect what the user is actually splitting by
+  used_vars <- x_var
+  if (!is.null(facet_rows)) used_vars <- c(used_vars, strsplit(facet_rows, "\\+")[[1]])
+  if (!is.null(facet_cols)) used_vars <- c(used_vars, strsplit(facet_cols, "\\+")[[1]])
+  used_vars <- unique(used_vars)
+  # find which truly‐varying group‐vars are missing
+  missing_vars <- setdiff(vars_vary, used_vars)
+  if (length(missing_vars)) {
+    warning(sprintf(
+      "Grouping variable(s) %s not used in x_var/facets; data may be aggregated across them.",
+      paste(missing_vars, collapse = ", ")
+    ))
   }
 
   p
