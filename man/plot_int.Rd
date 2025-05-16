@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_int.R
 \name{plot_int}
 \alias{plot_int}
-\title{Plot peptide intensities with optional log₁₀ y-axis, flexible filtering and faceting}
+\title{Plot peptide intensities with optional scientific notation y-axis, flexible filtering and faceting}
 \usage{
 plot_int(
   result,

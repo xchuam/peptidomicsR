@@ -1,4 +1,4 @@
-#' Plot peptide intensities with optional log₁₀ y-axis, flexible filtering and faceting
+#' Plot peptide intensities with optional scientific notation y-axis, flexible filtering and faceting
 #'
 #' @description
 #' Generates stacked‐bar charts of peptide intensities (per‐replicate or group‐mean)

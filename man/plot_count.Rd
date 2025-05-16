@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_count.R
 \name{plot_count}
 \alias{plot_count}
-\title{Plot peptide counts with optional log₁₀ y-axis, flexible filtering and faceting}
+\title{Plot peptide counts with optional scientific notation y-axis, flexible filtering and faceting}
 \usage{
 plot_count(
   result,

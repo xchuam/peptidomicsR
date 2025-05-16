@@ -1,4 +1,4 @@
-#' Plot peptide counts with optional log₁₀ y-axis, flexible filtering and faceting
+#' Plot peptide counts with optional scientific notation y-axis, flexible filtering and faceting
 #'
 #' @description
 #' Generates stacked‐bar charts of peptide counts (per‐replicate or group‐mean)
