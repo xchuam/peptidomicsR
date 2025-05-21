@@ -1,24 +1,21 @@
-#' Plot peptide counts with optional scientific notation y-axis, flexible filtering and faceting
+#' Plot peptide length distribution by intensity or count
 #'
 #' @description
-#' Generates stacked‐bar charts of peptide counts (per‐replicate or group‐mean)
-#' with:
-#' * User‐defined inclusion filters on any grouping columns,
-#' * Dynamic x‐axis chosen from grouping variables,
-#' * Flexible coloring by protein group or protein name,
-#' * Optional scientific notationn of the y‐axis,
-#' * Flexible faceting by one or more grouping variables.
+#' Summarizes and visualizes the distribution of peptide lengths,
+#' either by total intensity or by peptide counts, stacking by protein group or name,
+#' with optional filtering, faceting, and scientific notation on the y-axis.
 #'
 #' @param result List. Output of \code{processPeptides()}, containing at least:
 #'   \itemize{
-#'     \item \code{dt.peptides.count.reps}: replicate counts,
+#'     \item \code{dt.peptides.int}: mean intensities,
+#'     \item \code{dt.peptides.int.reps}: replicate-level intensities,
 #'     \item \code{dt.peptides.count}: mean counts,
+#'     \item \code{dt.peptides.count.reps}: replicate-level counts,
 #'     \item \code{grp_cols}: character vector of grouping column names.
 #'   }
 #' @param type Character. Which table to plot: \code{"reps"} (replicate‐level) or \code{"mean"} (group‐mean). Default: \code{"mean"}.
-#' @param x_var Character. Name of the grouping column to use on the x‐axis.
-#'   Must be one of \code{result$grp_cols} (and for \code{type="reps"} may also be \code{"Replicate"}).
-#'   Defaults to the first element of \code{result$grp_cols}.
+#' @param metric Character. Which metric to plot: \code{"intensity"} for summed intensities,
+#'   or \code{"count"} for peptide counts. Default: \code{"intensity"}.
 #' @param color_by Character. Fill aesthetic: \code{"Protein.group"}, \code{"Protein.name"}, or \code{"none"}.
 #'   Default: \code{"Protein.group"}.
 #' @param filter_params Named list, or \code{NULL}.  Each element’s name is a grouping column,
@@ -44,28 +41,23 @@
 #'   intensity_columns_file = "../Data/Intensity_columns.csv",
 #'   protein_mapping_file   = "../Data/protein_mapping.csv"
 #' )
-#' # 1) Simple replicate‐level, default x, default facet="Replicate"
-#' p1 <- plot_count(result, type = "reps")
-#'
-#' # 2) Simple mean‐level, x = Lipid, color by Protein.name
-#' p2 <- plot_count(result,
-#'                 type           = "mean",
-#'                 x_var          = "Lipid",
-#'                 color_by       = "Protein.name")
-#'
-#' # 3) Filter Lipid == "N" AND Digest.stage == "I", scientific notation y, default mean‐level
-#' p3 <- plot_count(
+#' # Plot mean Intensity vs. length, filter Lipid == "N", facet by Casein.ratio and Digest.stage
+#' p1 <- plot_length_distribution(
 #'   result,
-#'   filter_params = list(Lipid = "N", Digest.stage = "I"),
-#'   scientific_10_y = TRUE
+#'   metric           = "intensity",
+#'   filter_params    = list(Lipid = "N"),
+#'   facet_rows       = "Casein.ratio",
+#'   facet_cols       = "Digest.stage"
 #' )
-#'
-#' # 4) Multi-variable faceting: rows = Digest.stage, cols = Lipid+Replicate
-#' p4 <- plot_count(
+#' # Plot replicate‐level count vs. length, colored by protein name, not scientific y-axi, facet row by Casein.ratio+Digest.stage, col by Lipid+Replicate
+#' p2 <- plot_length_distribution(
 #'   result,
-#'   type        = "reps",
-#'   facet_rows  = "Digest.stage",
-#'   facet_cols  = "Lipid+Replicate"
+#'   type             = "reps",
+#'   metric           = "count",
+#'   color_by         = "Protein.name",
+#'   facet_rows       = "Casein.ratio+Digest.stage",
+#'   facet_cols       = "Lipid+Replicate",
+#'   scientific_10_y  = FALSE
 #' )
 #' }
 #'
@@ -74,36 +66,37 @@
 #' @import ggpubr
 #' @importFrom scales scientific_format
 #' @export
-plot_count <- function(result,
-                       type           = c("mean", "reps"),
-                       x_var          = NULL,
-                       color_by       = "Protein.group",
-                       filter_params  = NULL,
-                       facet_rows     = NULL,
-                       facet_cols     = NULL,
-                       scientific_10_y  = FALSE) {
-  type <- match.arg(type)
+plot_length_distribution <- function(result,
+                                     type             = c("mean", "reps"),
+                                     metric           = c("intensity", "count"),
+                                     color_by         = "Protein.group",
+                                     filter_params    = NULL,
+                                     facet_rows       = NULL,
+                                     facet_cols       = NULL,
+                                     scientific_10_y  = TRUE) {
+  # validate type and metric
+  type   <- match.arg(type)
+  metric <- match.arg(metric)
 
-  # choose data
-  dt <- switch(type,
-               reps = copy(result$dt.peptides.count.reps),
-               mean = copy(result$dt.peptides.count))
-  grp_cols <- result$grp_cols
-
-  # default x_var
-  if (is.null(x_var)) {
-    x_var <- grp_cols[1]
-  }
-  # validate x_var
-  if (type == "reps") {
-    if (!x_var %in% c("Replicate", grp_cols)) {
-      stop("For type = 'reps', x_var must be 'Replicate' or one of result$grp_cols")
+  # select raw data based on type and metric
+  if (type == "mean") {
+    if (metric == "intensity") {
+      dt  <- copy(result$dt.peptides.int)
+      y_var <- "Mean.Intensity"
+    } else {
+      dt  <- copy(result$dt.peptides.count)
+      y_var <- "Mean.Count"
     }
   } else {
-    if (!x_var %in% grp_cols) {
-      stop("For type = 'mean', x_var must be one of result$grp_cols")
+    if (metric == "intensity") {
+      dt  <- copy(result$dt.peptides.int.reps)
+      y_var <- "Intensity"
+    } else {
+      dt  <- copy(result$dt.peptides.count.reps)
+      y_var <- "Count"
     }
   }
+  grp_cols <- result$grp_cols
 
   # default color_by
   if (!color_by %in% c("Protein.group","Protein.name","none")) {
@@ -120,23 +113,19 @@ plot_count <- function(result,
 
   # set default facet_cols for replicate-level
   if (type == "reps" &&
-      x_var != "Replicate" &&
       (is.null(facet_rows) || !grepl("Replicate", facet_rows)) &&
       is.null(facet_cols)) {
     facet_cols <- "Replicate"
   }
 
-  # set y variable
-  y_var <- if (type == "reps") "Count" else "Mean.Count"
-
-  # build the plot
+  # build plot
   if (color_by == "none") {
-    p <- ggplot(dt, aes(x = .data[[x_var]],
+    p <- ggplot(dt, aes(x = Length,
                         y = .data[[y_var]])) +
       geom_bar(stat = "identity", position = "stack",fill = def_color)+
       theme_pubr()
   } else {
-    p <- ggplot(dt, aes(x = .data[[x_var]],
+    p <- ggplot(dt, aes(x = Length,
                         y = .data[[y_var]],
                         fill = .data[[color_by]])) +
       geom_bar(stat = "identity", position = "stack") +
@@ -151,7 +140,7 @@ plot_count <- function(result,
     )
   }
 
-  # faceting
+  # apply faceting
   if (!is.null(facet_rows) || !is.null(facet_cols)) {
     rows <- if (!is.null(facet_rows)) facet_rows else "."
     cols <- if (!is.null(facet_cols)) facet_cols else "."
@@ -166,7 +155,7 @@ plot_count <- function(result,
   vars_vary <- vars_distinct[
     sapply(vars_distinct, function(v) length(unique(dt[[v]])) > 1)]
   # collect what the user is actually splitting by
-  used_vars <- x_var
+  used_vars <- c()
   if (!is.null(facet_rows)) used_vars <- c(used_vars, strsplit(facet_rows, "\\+")[[1]])
   if (!is.null(facet_cols)) used_vars <- c(used_vars, strsplit(facet_cols, "\\+")[[1]])
   used_vars <- unique(used_vars)
@@ -174,7 +163,7 @@ plot_count <- function(result,
   missing_vars <- setdiff(vars_vary, used_vars)
   if (length(missing_vars)) {
     warning(sprintf(
-      "Grouping variable(s) %s not used in x_var/facets; data may be aggregated across them.",
+      "Grouping variable(s) %s not used in facets; data may be aggregated across them.",
       paste(missing_vars, collapse = ", ")
     ))
   }

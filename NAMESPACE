@@ -3,6 +3,7 @@
 export(filterPeptides)
 export(plot_count)
 export(plot_int)
+export(plot_length_distribution)
 export(processPeptides)
 import(data.table)
 import(ggplot2)
