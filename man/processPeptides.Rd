@@ -33,6 +33,7 @@ A named list with the following elements:
 Read peptide information from MaxQuant output file, intensity column meatadata, and protein mapping;
 filters out contaminants; computes per-replicate and per-group mean intensities;
 and counts peptides per replicate and per group .
+Map protein name and protein group, calculate GRAVY score.
 }
 \examples{
 \dontrun{

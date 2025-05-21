@@ -4,6 +4,7 @@
 #' Read peptide information from MaxQuant output file, intensity column meatadata, and protein mapping;
 #' filters out contaminants; computes per-replicate and per-group mean intensities;
 #' and counts peptides per replicate and per group .
+#' Map protein name and protein group, calculate GRAVY score.
 #'
 #' @param peptides_file
 #'   A \code{character} specifying the path to the MaxQuant peptide data file,
@@ -269,8 +270,12 @@ processPeptides <- function(peptides_file,
     , by = c("Length", "Protein.name", "Protein.group", "Replicate", grp_cols)
   ]
 
+  # 10. compute GRAVY score
+  dt.peptides[,GRAVY.score := sapply(Sequence, calculate_gravy)]
+  dt.peptides.int[,GRAVY.score := sapply(Sequence, calculate_gravy)]
+  dt.peptides.int.reps[,GRAVY.score := sapply(Sequence, calculate_gravy)]
 
-  # 9. Return outputs
+  # 11. Return outputs
   list(
     dt.peptides               = dt.peptides,
     dt.peptides.int           = dt.peptides.int,

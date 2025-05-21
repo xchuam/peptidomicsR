@@ -2,6 +2,7 @@
 
 export(filterPeptides)
 export(plot_count)
+export(plot_gravy_vs_intensity)
 export(plot_int)
 export(plot_length_distribution)
 export(processPeptides)
