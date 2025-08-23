@@ -15,7 +15,10 @@ Imports:
     ggplot2,
     scales,
     data.table,
-    ggpubr
+    ggpubr,
+    cowplot,
+    gridExtra,
+    ggseqlogo
 Suggests:
     testthat (>= 3.0.0),
     knitr,
