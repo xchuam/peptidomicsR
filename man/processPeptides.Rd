@@ -22,6 +22,7 @@ A named list with the following elements:
 \item \code{dt.peptides}:  Filtered wide-format \code{data.table} of peptides with basic columns, intensity measurements, \code{Protein.name}, and \code{Protein.group}.
 \item \code{dt.peptides.int}: Data.table with \code{Mean.Intensity} per group across replicates.
 \item \code{dt.peptides.int.reps}: Data.table with \code{Intensity} per replicate per group.
+\item \code{dt.peptides.int.ttest}: Data.table for potential t.test analysis. Zero values are not dropped.
 \item \code{dt.peptides.count}: Counts of peptides per group in \code{dt.peptides.int}.
 \item \code{dt.peptides.count.reps}: Counts of peptides per replicate per group in \code{dt.peptides.int.reps}.
 \item \code{dt.int_col}: The intensity column metadata read from \code{intensity_columns_file}.
