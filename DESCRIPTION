@@ -18,10 +18,15 @@ Imports:
     ggpubr,
     cowplot,
     gridExtra,
-    ggseqlogo
+    ggseqlogo,
+    limma
 Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
+Remotes:
+    bioc::limma
+Additional_repositories:
+    https://bioconductor.org/packages/release/bioc
 RoxygenNote: 7.3.2
 Config/testthat/edition: 3

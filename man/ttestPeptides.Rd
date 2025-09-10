@@ -2,14 +2,16 @@
 % Please edit documentation in R/ttestPeptides.R
 \name{ttestPeptides}
 \alias{ttestPeptides}
-\title{Compare peptide intensities between user-defined groups (t-test)}
+\title{Compare peptide intensities between user-defined groups with t-tests or limma::treat}
 \usage{
 ttestPeptides(
   result,
   comparisons,
   pseudocount = 1,
+  test_method = c("treat", "plain"),
+  lfc_thresh = 1,
+  alpha = 0.05,
   equal_var = FALSE,
-  alternative = c("two.sided", "less", "greater"),
   adjust = "BH",
   min_reps_per_side = 2
 )
@@ -41,22 +43,41 @@ selects \code{Digest.stage = G} and \code{Lipid = G}.
 
 \item{pseudocount}{Numeric. Value used to replace zero intensities before
 statistical testing. This helps avoid issues with log2 transformation and division by zero.
-Default: 1.}
+Default \code{1}.}
+
+\item{test_method}{Character. Testing engine: \code{"treat"} for using \code{limma:treat()};
+\code{"plain"} for using \code{stats::t.test}. For \code{"treat"}, \code{lfc_thresh} is the null bound
+in \code{limma::treat}. For \code{"plain"}, \code{lfc_thresh} is used only
+for the significance flag.  Default \code{"treat"}.}
+
+\item{lfc_thresh}{Numeric. Effect-size threshold on the log2 fold-change.
+Interpreted as the \emph{null bound} in \code{"treat"} mode, and as an
+\emph{effect-size filter} for the significance (\code{sig} flag) in both modes. Default \code{1}.}
+
+\item{alpha}{Numeric. FDR threshold used to define the significance (\code{sig} flag)
+(\code{p.adj <= alpha} and \code{|log2FC| >= lfc_thresh}). Default \code{0.05}.}
 
 \item{equal_var}{Logical. If \code{TRUE}, use Student's t-test with equal
 variances; otherwise Welch's test (default).}
 
-\item{alternative}{Character. \code{"two.sided"} (default), \code{"less"}, or \code{"greater"}.}
-
-\item{adjust}{Character. Method passed to \code{\link[stats:p.adjust]{stats::p.adjust()}}, default \code{"BH"}.}
+\item{adjust}{Character. Method passed to \code{limma::topTreat(adjust.method=)} in the \code{"treat"} mode;
+passed to [stats::p.adjust() in the \code{"plain"} t.test mode.
+Default \code{"BH"}.}
 
 \item{min_reps_per_side}{Integer. Minimum non-NA observations required on
-each side to perform a test. Default: 2.}
+each side to perform a test. Default: \code{2}.}
 }
 \value{
 A named list of \code{data.table}, one per comparison. Each table has one
 row per peptide and includes:
-\code{t}, \code{df}, \code{p.value}, \code{log2FC}, \code{p.adj}.
+\code{t}, \code{df}, \code{p.value}, \code{log2FC}, \code{p.adj}, \code{sig}.
+\itemize{
+\item \code{vals.*}, \code{n.*}, \code{mean.*} — per-side replicate values, counts and mean log2 intensity.
+\item \code{t}, \code{df} — test statistic and degrees of freedom.  For \code{treat}), the \code{df} is \code{df.total} (the moderated residual df).
+\item \code{log2FC} — the mean log2 intensity difference, positive means higher in the first group.
+\item \code{p.value}, \code{p.adj} — raw and adjusted p-values (from \code(t.test) or \code{treat}).
+\item \code{sig} — \code{"yes"} if \code{p.adj <= alpha} and \code{|log2FC| >= lfc_thresh}, else \code{"no"}.
+}
 }
 \description{
 Performs two-sample t-tests on peptide replicate intensities between
@@ -67,6 +88,8 @@ underscore-joined tokens (e.g., \code{"C1_B1_T1"}), in any order (e.g.,
 \code{"B1_T1_C1"}), and may omit some grouping columns (e.g., \code{"C1_B1"}). If a
 selector omits some grouping columns, replicates across the omitted
 dimensions are pooled (a warning is issued).
+User can choose the plain t-test method from \code{stats} package,
+or the TREAT method from \code{limma} package (R/Bioconductor), which is the thresholded empirical Bayes moderated t-test.
 
 Zero intensities are replaced by a pseudocount provided by the user with default value 1.
 }
@@ -80,16 +103,18 @@ result <- processPeptides(
 )
 
 
-#  1) One t.test with specification of groups
+#  1) One test via limma TREAT (default) with specification of groups
 ttest.1 <- ttestPeptides(
   result,
   comparisons = list(c("C40_G_N", "C40_I_N"))
 )
 
-#  2) For one t.test, the comparisons can be a a single character vector
+#  2) For one test, the comparisons can be a a single character vector
+# Here we use plain Welch t-test
 ttest.2 <- ttestPeptides(
   result,
-  comparisons = c("C40_G_N", "C40_I_N")
+  comparisons = c("C40_G_N", "C40_I_N"),
+  test_method = "plain"
 )
 
 #  3) Token order does not matter
@@ -99,7 +124,7 @@ ttest.3 <- ttestPeptides(
   comparisons = list(c("G_N_C40", "I_N_C40"))
 )
 
-#  4) More than one t.test can be done at one time
+#  4) More than one test can be done at one time
 ttest.4 <- ttestPeptides(
   result,
   comparisons = list(

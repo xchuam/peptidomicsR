@@ -1,4 +1,4 @@
-#' Compare peptide intensities between user-defined groups (t-test)
+#' Compare peptide intensities between user-defined groups with t-tests or limma::treat
 #'
 #' @description
 #' Performs two-sample t-tests on peptide replicate intensities between
@@ -9,6 +9,8 @@
 #' `"B1_T1_C1"`), and may omit some grouping columns (e.g., `"C1_B1"`). If a
 #' selector omits some grouping columns, replicates across the omitted
 #' dimensions are pooled (a warning is issued).
+#' User can choose the plain t-test method from \code{stats} package,
+#' or the TREAT method from \code{limma} package (R/Bioconductor), which is the thresholded empirical Bayes moderated t-test.
 #'
 #' Zero intensities are replaced by a pseudocount provided by the user with default value 1.
 #'
@@ -34,17 +36,34 @@
 #'   selects `Digest.stage = G` and `Lipid = G`.
 #' @param pseudocount Numeric. Value used to replace zero intensities before
 #'   statistical testing. This helps avoid issues with log2 transformation and division by zero.
-#'   Default: 1.
+#'   Default \code{1}.
+#' @param test_method Character. Testing engine: \code{"treat"} for using \code{limma:treat()};
+#'   \code{"plain"} for using \code{stats::t.test}. For \code{"treat"}, \code{lfc_thresh} is the null bound
+#'   in \code{limma::treat}. For \code{"plain"}, \code{lfc_thresh} is used only
+#'   for the significance flag.  Default \code{"treat"}.
+#' @param lfc_thresh Numeric. Effect-size threshold on the log2 fold-change.
+#'   Interpreted as the \emph{null bound} in \code{"treat"} mode, and as an
+#'   \emph{effect-size filter} for the significance (\code{sig} flag) in both modes. Default \code{1}.
+#' @param alpha Numeric. FDR threshold used to define the significance (\code{sig} flag)
+#'   (\code{p.adj <= alpha} and \code{|log2FC| >= lfc_thresh}). Default \code{0.05}.
 #' @param equal_var Logical. If `TRUE`, use Student's t-test with equal
 #'   variances; otherwise Welch's test (default).
-#' @param alternative Character. `"two.sided"` (default), `"less"`, or `"greater"`.
-#' @param adjust Character. Method passed to [stats::p.adjust()], default `"BH"`.
+#' @param adjust Character. Method passed to \code{limma::topTreat(adjust.method=)} in the \code{"treat"} mode;
+#' passed to [stats::p.adjust() in the \code{"plain"} t.test mode.
+#' Default \code{"BH"}.
 #' @param min_reps_per_side Integer. Minimum non-NA observations required on
-#'   each side to perform a test. Default: 2.
+#'   each side to perform a test. Default: \code{2}.
 #'
 #' @return A named list of `data.table`, one per comparison. Each table has one
 #'   row per peptide and includes:
-#'   `t`, `df`, `p.value`, `log2FC`, `p.adj`.
+#'   `t`, `df`, `p.value`, `log2FC`, `p.adj`, `sig`.
+#'   \itemize{
+#'     \item \code{vals.*}, \code{n.*}, \code{mean.*} — per-side replicate values, counts and mean log2 intensity.
+#'     \item \code{t}, \code{df} — test statistic and degrees of freedom.  For \code{treat}), the \code{df} is \code{df.total} (the moderated residual df).
+#'     \item \code{log2FC} — the mean log2 intensity difference, positive means higher in the first group.
+#'     \item \code{p.value}, \code{p.adj} — raw and adjusted p-values (from \code(t.test) or \code{treat}).
+#'     \item \code{sig} — \code{"yes"} if \code{p.adj <= alpha} and \code{|log2FC| >= lfc_thresh}, else \code{"no"}.
+#'   }
 #'
 #' @examples
 #' \dontrun{
@@ -56,16 +75,18 @@
 #' )
 #'
 #'
-#' #  1) One t.test with specification of groups
+#' #  1) One test via limma TREAT (default) with specification of groups
 #' ttest.1 <- ttestPeptides(
 #'   result,
 #'   comparisons = list(c("C40_G_N", "C40_I_N"))
 #' )
 #'
-#' #  2) For one t.test, the comparisons can be a a single character vector
+#' #  2) For one test, the comparisons can be a a single character vector
+#' # Here we use plain Welch t-test
 #' ttest.2 <- ttestPeptides(
 #'   result,
-#'   comparisons = c("C40_G_N", "C40_I_N")
+#'   comparisons = c("C40_G_N", "C40_I_N"),
+#'   test_method = "plain"
 #' )
 #'
 #' #  3) Token order does not matter
@@ -75,7 +96,7 @@
 #'   comparisons = list(c("G_N_C40", "I_N_C40"))
 #' )
 #'
-#' #  4) More than one t.test can be done at one time
+#' #  4) More than one test can be done at one time
 #' ttest.4 <- ttestPeptides(
 #'   result,
 #'   comparisons = list(
@@ -105,17 +126,20 @@
 #'
 #' @import data.table
 #' @importFrom stats t.test p.adjust
+#' @importFrom limma lmFit contrasts.fit makeContrasts treat topTreat
 #' @export
 ttestPeptides <- function(
     result,
     comparisons,
     pseudocount       = 1,
+    test_method       = c("treat", "plain"),
+    lfc_thresh        = 1,
+    alpha             = 0.05,
     equal_var         = FALSE,
-    alternative       = c("two.sided","less","greater"),
     adjust            = "BH",
     min_reps_per_side = 2
 ) {
-  alternative <- match.arg(alternative)
+  test_method <- match.arg(test_method)
 
   requireNamespace("data.table", quietly = TRUE)
 
@@ -127,7 +151,7 @@ ttestPeptides <- function(
   # --- locate replicate columns R1..Rn ---
   rep_cols <- grep("^R\\d+$", names(dt), value = TRUE)
   if (length(rep_cols) == 0L)
-    stop("No replicate columns 'R1..Rn' found in result$dt.peptides.int.")
+    stop("No replicate columns 'R1..Rn' found in result$dt.peptides.int.ttest")
 
   # --- make long table of replicate intensities (keep zeros here) ---
   long <- data.table::melt(
@@ -246,23 +270,76 @@ ttestPeptides <- function(
     # remove rows with only pseudocount
     M <- M[!(mean_A == log2(pseudocount) & mean_B == log2(pseudocount))]
 
-    # rowwise t-test
-    M[, c("t","df","p.value") := {
-      a <- unlist(A_vals); b <- unlist(B_vals)
-      if (length(a) >= min_reps_per_side && length(b) >= min_reps_per_side) {
-        tt <- try(stats::t.test(a, b, var.equal = equal_var, alternative = alternative), silent = TRUE)
-        if (inherits(tt, "try-error")) list(NA_real_, NA_real_, NA_real_)
-        else list(unname(tt$statistic), unname(tt$parameter), unname(tt$p.value))
-      } else {
-        list(NA_real_, NA_real_, NA_real_)
-      }
-    }, by = id_cols]
+    #t.test via TREAT from limma or plain t.test
+    if (test_method == "treat"){ #ttest via TREAT
+      A[, grp := "A"];  B[, grp := "B"]
+      AB <- rbindlist(list(A, B), use.names = TRUE, fill = TRUE)
 
-    # log2FC difference of means on log2 scale
-    M[, log2FC := mean_A - mean_B]
+      # ---- Create sample IDs (one column per unique replicate/run) ----
+      AB[, sample_id := paste(grp, Replicate, sep = "_")]
 
-    # p.adjust within this contrast
-    M[, p.adj := stats::p.adjust(p.value, method = adjust)]
+      # ---- Cast to matrix: peptides x samples ----
+      form <- as.formula("Sequence ~ sample_id")
+      X <- data.table::dcast(AB, form, value.var = "value")  # peptides x samples
+      id_dt <- X[, Sequence]
+      Mmat  <- as.matrix(X[, !"Sequence", with = FALSE])
+      rownames(Mmat) <- id_dt
+
+      # ---- Sample metadata and design matrix ----
+      S <- unique(AB[, .(sample_id, grp)])
+      S <- S[match(colnames(Mmat), sample_id)]      # align with columns of Mmat
+      grp <- factor(S$grp, levels = c("A","B"))
+      design <- model.matrix(~ 0 + grp); colnames(design) <- c("A","B")
+
+      # ---- require minimum replicates per side ----
+      idxA <- which(grp == "A"); idxB <- which(grp == "B")
+      n_A  <- rowSums(is.finite(Mmat[, idxA, drop = FALSE]))
+      n_B  <- rowSums(is.finite(Mmat[, idxB, drop = FALSE]))
+      keep <- (n_A >= min_reps_per_side) & (n_B >= min_reps_per_side)
+      Mmat_fit  <- Mmat[keep, , drop = FALSE]
+      id_keep   <- id_dt[keep]
+
+      # ---- limma + TREAT (tests H0: |log2FC| <= lfc_thresh) ----
+      fit   <- lmFit(Mmat_fit, design)
+      fit   <- contrasts.fit(fit, makeContrasts(AvsB = A - B, levels = design))  # sign matches your mean_A - mean_B
+      fitTr <- treat(fit, lfc = lfc_thresh, trend = TRUE, robust = TRUE)
+
+      # BH adjust inside topTreat; keep original row order
+      tt <- topTreat(fitTr, coef = "AvsB", number = nrow(Mmat_fit),
+                     sort.by = "none", adjust.method = adjust)
+
+      res_limma <- data.table(
+        Sequence = id_keep,
+        t      = tt$t,
+        df = fitTr$df.total[rownames(tt)],
+        p.value    = tt$P.Value,
+        log2FC = tt$logFC,
+        p.adj      = tt$adj.P.Val
+      )
+
+      M <- merge(M, res_limma, by = "Sequence", all.y = F)
+    } else { #plain test
+      # rowwise t-test
+      M[, c("t","df","p.value") := {
+        a <- unlist(A_vals); b <- unlist(B_vals)
+        if (length(a) >= min_reps_per_side && length(b) >= min_reps_per_side) {
+          tt <- try(stats::t.test(a, b, var.equal = equal_var, alternative = "two.sided"), silent = TRUE)
+          if (inherits(tt, "try-error")) list(NA_real_, NA_real_, NA_real_)
+          else list(unname(tt$statistic), unname(tt$parameter), unname(tt$p.value))
+        } else {
+          list(NA_real_, NA_real_, NA_real_)
+        }
+      }, by = id_cols]
+
+      # log2FC difference of means on log2 scale
+      M[, log2FC := mean_A - mean_B]
+
+      # p.adjust within this contrast
+      M[, p.adj := stats::p.adjust(p.value, method = adjust)]
+    }
+
+    # significance flag at FDR alpha
+    M[, sig := ifelse(p.adj <= alpha & abs(log2FC) >= lfc_thresh , "yes", "no")]
 
     #rename some columns
     setnames(M,
