@@ -71,7 +71,7 @@
 #'
 #' @import ggplot2
 #' @import data.table
-#' @import ggpubr
+#' @importFrom ggpubr theme_pubr
 #' @importFrom scales scientific_format
 #' @export
 plot_count <- function(result,

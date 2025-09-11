@@ -32,7 +32,7 @@
 #'
 #' @import ggplot2
 #' @import data.table
-#' @import ggpubr
+#' @importFrom ggpubr theme_pubr
 #' @export
 plot_gravy_vs_intensity <- function(result,
                                     type          = c("mean", "reps"),

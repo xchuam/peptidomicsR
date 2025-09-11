@@ -156,7 +156,7 @@
 #'
 #' @import ggplot2
 #' @import data.table
-#' @import ggpubr
+#' @importFrom ggpubr theme_pubr
 #' @importFrom ggrepel geom_text_repel
 #' @export
 
