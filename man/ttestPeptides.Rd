@@ -75,7 +75,7 @@ row per peptide and includes:
 \item \code{vals.*}, \code{n.*}, \code{mean.*} — per-side replicate values, counts and mean log2 intensity.
 \item \code{t}, \code{df} — test statistic and degrees of freedom.  For \code{treat}), the \code{df} is \code{df.total} (the moderated residual df).
 \item \code{log2FC} — the mean log2 intensity difference, positive means higher in the first group.
-\item \code{p.value}, \code{p.adj} — raw and adjusted p-values (from \code(t.test) or \code{treat}).
+\item \code{p.value}, \code{p.adj} — raw and adjusted p-values (from \code{t.test} or \code{treat}).
 \item \code{sig} — \code{"yes"} if \code{p.adj <= alpha} and \code{|log2FC| >= lfc_thresh}, else \code{"no"}.
 }
 }

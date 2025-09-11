@@ -152,7 +152,7 @@
 #' )
 #' v5$C40_G_N_vs_C40_I_N
 #'
-#' @seealso \code{\link{ttestPeptides}}}
+#' @seealso \code{\link{ttestPeptides}}
 #'
 #' @import ggplot2
 #' @import data.table

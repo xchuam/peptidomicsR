@@ -194,5 +194,5 @@ v5$C40_G_N_vs_C40_I_N
 
 }
 \seealso{
-\code{\link{ttestPeptides}}}
+\code{\link{ttestPeptides}}
 }
