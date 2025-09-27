@@ -1,0 +1,52 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "peptidomicsR: Tools for Peptidomics and Protein Digestion Analysis"
+type: software
+abstract: >
+  A collection of functions to process, analyze, and visualize peptidomics data,
+  including MaxQuant peptide processing, flexible plotting utilities, peptide
+  length distributions, GRAVY scores, and group comparisons.
+
+version: "0.1.0"
+license: MIT
+repository-code: "https://github.com/xchuam/peptidomicsR"
+url: "https://github.com/xchuam/peptidomicsR"
+keywords:
+  - peptidomics
+  - protein digestion
+  - MaxQuant
+  - data process
+  - data visualization
+languages:
+  - R
+date-released: "2025-09-27"
+
+authors:
+  - family-names: Ma
+    given-names: Xuchuan
+    email: xuchuan.ma@gmail.com
+    orcid: "https://orcid.org/0000-0001-6797-0886"
+    affiliation: "Delft University of Technology"
+  - family-names: Ren
+    given-names: Qing
+    email: qing.ren@wur.nl
+    orcid: "https://orcid.org/0000-0003-3479-6679"
+    affiliation: "Wageningen University & Research"
+
+contact:
+  - family-names: Ma
+    given-names: Xuchuan
+    email: xuchuan.ma@gmail.com
+
+preferred-citation:
+  type: software
+  title: "peptidomicsR"
+  version: "0.1.0"
+  authors:
+    - family-names: Ma
+      given-names: Xuchuan
+      orcid: "https://orcid.org/0000-0001-6797-0886"
+    - family-names: Ren
+      given-names: Qing
+      orcid: "https://orcid.org/0000-0003-3479-6679"
+  year: 2025
