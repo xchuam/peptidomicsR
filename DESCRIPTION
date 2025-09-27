@@ -3,7 +3,10 @@ Type: Package
 Title: Tools for Peptidomics and Protein Digestion Analysis
 Version: 0.1.0
 Authors@R: 
-    person("Xuchuan", "Ma", email = "xuchuan.ma@gmail.com", role = c("aut", "cre"))
+    c(
+      person("Xuchuan", "Ma", email = "xuchuan.ma@gmail.com", role = c("aut", "cre")),
+      person("Qing", "Ren", email = "qing.ren@wur.nl", role = c("aut", "cre"))
+    )
 Description: A collection of functions to process, analyze, and visualize peptidomics data.
 License: MIT + file LICENSE
 Encoding: UTF-8
