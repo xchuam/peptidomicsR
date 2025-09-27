@@ -136,7 +136,7 @@ plot_cleavage_site(
 
 If you use **peptidomicsR** in your work, please cite this repository:
 
-*Ma, X., & Ren, Q. (2025). peptidomicsR (Version 0.1.0) [Computer software]*
+*Ma, X., & Ren, Q. (2025). peptidomicsR (Version 1.0.0-alpha) [Computer software]*
 
 ------------------------------------------------------------------------
 
