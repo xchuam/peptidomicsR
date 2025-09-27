@@ -3,8 +3,6 @@ title: "peptidomicsR"
 output: github_document
 ---
 
-# peptidomicsR
-
 **Tools for peptidomics analysis of digesta from protein digestion**
 
 `peptidomicsR` provides functions to process, filter, analyze, and visualize peptidomics data, especially from MaxQuant protein digestion studies. This README introduces the package through three parts:
@@ -31,7 +29,7 @@ output: github_document
 
 -   **PCA** analysis to pre-check group separation --- `pcaPeptides()`.
 -   Subset by sequence, regex pattern, or grouping variables --- `filterPeptides()`.
--   Compare specific groups with t-tests or **limma::treat** to obtain significantly different peptides --- `ttestPeptides()`.
+-   Compare specific groups using statistical analysis to identify significantly different peptides with --- `ttestPeptides()`.
 
 ### Visualization
 
@@ -62,7 +60,7 @@ output: github_document
 
 ## 📦 Installation
 
-```{r}
+```{r eval=FALSE}
 # Install from GitHub
 if (!require("devtools")) install.packages("devtools")
 devtools::install_github("xchuam/peptidomicsR")
@@ -84,7 +82,7 @@ BiocManager::install("limma")
 library(peptidomicsR)
 
 result <- processPeptides(
-  peptides_file          = "Data/peptides.txt",
+  peptides_file          = "Data/Yogurtexample_QR188-205.csv",
   intensity_columns_file = "Data/Intensity_columns.csv",
   protein_mapping_file   = "Data/protein_mapping.csv"
 )
@@ -95,10 +93,9 @@ result <- processPeptides(
 ```{r pressure, echo=FALSE}
 plot_int(
   result,
-  x_var         = "Lipid",
+  x_var         = "Yogurt",
   type          = "mean",
-  facet_cols    = "Casein.ratio",
-  filter_params = list(Digest.stage = "I"),
+  filter_params = list(Digest.stage = "G120"),
   color_by      = "Protein.name"
 )
 ```
@@ -108,9 +105,8 @@ plot_int(
 ```{r}
 plot_length_distribution(
   result,
-  facet_cols    = "Casein.ratio",
-  facet_rows    = "Lipid",
-  filter_params = list(Digest.stage = "I")
+  facet_rows    = "Yogurt",
+  filter_params = list(Digest.stage = "G120")
 )
 ```
 
@@ -122,60 +118,9 @@ plot_cleavage_site(
   terminal              = "both",       # "N", "C", or "both"
   measure               = "intensity",  # "intensity" or "count"
   replicate_mode        = "mean",       # "mean" or "reps"
-  filter_params         = list(Digest.stage = "I"),
+  filter_params         = list(Digest.stage = "G120"),
   scientific_10_y       = TRUE,
   drop_constant_groups  = TRUE
-)
-```
-
-### 5) GRAVY vs. log10 intensity
-
-```{r}
-plot_gravy_vs_intensity(
-  result,
-  facet_cols    = "Casein.ratio",
-  facet_rows    = "Lipid",
-  filter_params = list(Digest.stage = "G")
-)
-```
-
-### 6) Differential testing (t-test or limma::treat)
-
-```{r}
-comparisons <- list(c("C40_G_N", "C40_I_N"))
-
-ttest_result <- ttestPeptides(
-  result,
-  comparisons       = comparisons,
-  pseudocount       = 1,
-  test_method       = "treat",  # "treat" or "plain"
-  lfc_thresh        = 1,
-  alpha             = 0.05,
-  equal_var         = FALSE,
-  adjust            = "BH",
-  min_reps_per_side = 2
-)
-```
-
-### 7) Volcano plot(s)
-
-```{r}
-plot_volcano(
-  ttest_result    = ttest_result,
-  comparisons     = comparisons,
-  test_method     = "treat",
-  show_threshold  = TRUE,
-  lfc_thresh      = 1,
-  alpha           = 0.05,
-  fill_values     = c(no = "grey75", yes = "#FFC010"),
-  point_size      = 2,
-  point_alpha     = 0.85,
-  label_seqs      = NULL,
-  label_size      = 3,
-  label_col       = "black",
-  highlight_seqs  = NULL,
-  highlight_size  = NULL,
-  y_log_scale     = FALSE
 )
 ```
 
@@ -183,77 +128,18 @@ plot_volcano(
 
 ## 🛠️ Dependencies
 
--   `data.table`, `ggplot2`, `ggpubr`, `scales` (plots & helpers)
--   `limma` (optional; for `treat`)
+`data.table`, `ggplot2`, `ggpubr`, `scales`, `cowplot`, `gridExtra`, `ggseqlogo`, `limma` (plots & helpers)
 
 ------------------------------------------------------------------------
 
 ## 📖 Citation
 
-If you use **peptidomicsR** in your work, please cite this repository.
+If you use **peptidomicsR** in your work, please cite this repository:
+
+*Ma, X., & Ren, Q. (2025). peptidomicsR (Version 0.1.0) [Computer software]*
 
 ------------------------------------------------------------------------
 
 ## 📜 License
 
-This project is licensed under the **MIT License** -- see the `LICENSE` file for details.
-
-```{r setup, include=FALSE}
-
-knitr::opts_chunk$set(
-  fig.path   = "man/figures/",
-  fig.width  = 8,
-  fig.height = 5,
-  dpi        = 150,
-  echo       = TRUE,
-  message    = FALSE,
-  warning    = FALSE
-)
-
-```
-
-```{r}
-# Install from GitHub
-if (!require("devtools")) install.packages("devtools")
-devtools::install_github("xchuam/peptidomicsR")
-
-library(peptidomicsR)
-result <- processPeptides(
-  peptides_file          = "Data/peptides.txt",
-  intensity_columns_file = "Data/Intensity_columns.csv",
-  protein_mapping_file   = "Data/protein_mapping.csv"
-)
-
-```
-
-```{r}
-plot_int(
-  result,
-  x_var         = "Lipid",
-  type          = "mean",
-  facet_cols    = "Casein.ratio",
-  filter_params = list(Digest.stage = "I"),
-  color_by      = "Protein.name"
-)
-
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+This project is licensed under the **GPL-3.0 License** -- see the `LICENSE` file for details.
