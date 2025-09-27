@@ -8,7 +8,7 @@ abstract: >
   length distributions, GRAVY scores, and group comparisons.
 
 version: "0.1.0"
-license: MIT
+license: GPL-3.0-or-later
 repository-code: "https://github.com/xchuam/peptidomicsR"
 url: "https://github.com/xchuam/peptidomicsR"
 keywords:
