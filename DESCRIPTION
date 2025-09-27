@@ -5,7 +5,7 @@ Version: 0.1.0
 Authors@R: 
     c(
       person("Xuchuan", "Ma", email = "xuchuan.ma@gmail.com", role = c("aut", "cre")),
-      person("Qing", "Ren", email = "qing.ren@wur.nl", role = c("aut", "cre"))
+      person("Qing", "Ren", email = "qing.ren@wur.nl", role = "aut")
     )
 Description: A collection of functions to process, analyze, and visualize peptidomics data.
 License: MIT + file LICENSE
