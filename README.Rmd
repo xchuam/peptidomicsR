@@ -1,3 +1,8 @@
+---
+title: "peptidomicsR"
+output: github_document
+---
+
 # peptidomicsR
 
 **Tools for peptidomics analysis of digesta from protein digestion**
@@ -57,15 +62,11 @@
 
 ## 📦 Installation
 
-``` r
+```{r}
 # Install from GitHub
 if (!require("devtools")) install.packages("devtools")
 devtools::install_github("xchuam/peptidomicsR")
-```
 
-> If you plan to use the TREAT option, install limma:
-
-``` r
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 BiocManager::install("limma")
 ```
@@ -79,7 +80,7 @@ BiocManager::install("limma")
 
 ### 1) Import and process data
 
-``` r
+```{r}
 library(peptidomicsR)
 
 result <- processPeptides(
@@ -91,7 +92,7 @@ result <- processPeptides(
 
 ### 2) Mean peptide intensities by parent proteins
 
-``` r
+```{r pressure, echo=FALSE}
 plot_int(
   result,
   x_var         = "Lipid",
@@ -104,7 +105,7 @@ plot_int(
 
 ### 3) Peptide-length distribution (by intensity)
 
-``` r
+```{r}
 plot_length_distribution(
   result,
   facet_cols    = "Casein.ratio",
@@ -115,7 +116,7 @@ plot_length_distribution(
 
 ### 4) Cleavage-site intensity (N and/or C termini)
 
-``` r
+```{r}
 plot_cleavage_site(
   result,
   terminal              = "both",       # "N", "C", or "both"
@@ -129,7 +130,7 @@ plot_cleavage_site(
 
 ### 5) GRAVY vs. log10 intensity
 
-``` r
+```{r}
 plot_gravy_vs_intensity(
   result,
   facet_cols    = "Casein.ratio",
@@ -140,7 +141,7 @@ plot_gravy_vs_intensity(
 
 ### 6) Differential testing (t-test or limma::treat)
 
-``` r
+```{r}
 comparisons <- list(c("C40_G_N", "C40_I_N"))
 
 ttest_result <- ttestPeptides(
@@ -158,7 +159,7 @@ ttest_result <- ttestPeptides(
 
 ### 7) Volcano plot(s)
 
-``` r
+```{r}
 plot_volcano(
   ttest_result    = ttest_result,
   comparisons     = comparisons,
@@ -196,3 +197,63 @@ If you use **peptidomicsR** in your work, please cite this repository.
 ## 📜 License
 
 This project is licensed under the **MIT License** -- see the `LICENSE` file for details.
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+  fig.path   = "man/figures/",
+  fig.width  = 8,
+  fig.height = 5,
+  dpi        = 150,
+  echo       = TRUE,
+  message    = FALSE,
+  warning    = FALSE
+)
+
+```
+
+```{r}
+# Install from GitHub
+if (!require("devtools")) install.packages("devtools")
+devtools::install_github("xchuam/peptidomicsR")
+
+library(peptidomicsR)
+result <- processPeptides(
+  peptides_file          = "Data/peptides.txt",
+  intensity_columns_file = "Data/Intensity_columns.csv",
+  protein_mapping_file   = "Data/protein_mapping.csv"
+)
+
+```
+
+```{r}
+plot_int(
+  result,
+  x_var         = "Lipid",
+  type          = "mean",
+  facet_cols    = "Casein.ratio",
+  filter_params = list(Digest.stage = "I"),
+  color_by      = "Protein.name"
+)
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
