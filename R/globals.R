@@ -1,0 +1,36 @@
+# Declare global variables used in data.table expressions to satisfy R CMD check.
+utils::globalVariables(
+  c(
+    ".",
+    "..cols",
+    "..peptides_select_col",
+    "..rep_names",
+    "A_vals",
+    "B_vals",
+    "GRAVY.score",
+    "Intensity",
+    "Intensity_adj",
+    "Intensity.column",
+    "Leading.razor.protein",
+    "Length",
+    "Mean.Intensity",
+    "Protein.group",
+    "Protein.name",
+    "Replicate",
+    "Sequence",
+    "i.Protein.group",
+    "i.Protein.name",
+    "log10.Intensity",
+    "log10.Mean.Intensity",
+    "log2FC",
+    "mean_A",
+    "mean_B",
+    "p.adj",
+    "p.value",
+    "sample_id",
+    "sig",
+    "value",
+    "yvar",
+    "yvar_plot"
+  )
+)

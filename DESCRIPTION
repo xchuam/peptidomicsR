@@ -1,7 +1,7 @@
 Package: peptidomicsR
 Type: Package
 Title: Tools for Peptidomics and Protein Digestion Analysis
-Version: 1.0.0.9000
+Version: 1.0.1.9000
 Authors@R: 
     c(
       person("Xuchuan", "Ma", email = "xuchuan.ma@gmail.com", role = c("aut", "cre")),
@@ -16,6 +16,7 @@ Depends:
     R (>= 4.0.0)
 Imports:
     ggplot2,
+    ggrepel,
     scales,
     data.table,
     ggpubr,

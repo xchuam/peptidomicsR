@@ -49,7 +49,9 @@
 #'   facet_rows       = "Casein.ratio",
 #'   facet_cols       = "Digest.stage"
 #' )
-#' # Plot replicate‐level count vs. length, colored by protein name, not scientific y-axi, facet row by Casein.ratio+Digest.stage, col by Lipid+Replicate
+#' # Plot replicate‐level count vs. length,
+#' colored by protein name, not scientific y-axis,
+#' facet row by Casein.ratio+Digest.stage, col by Lipid+Replicate
 #' p2 <- plot_length_distribution(
 #'   result,
 #'   type             = "reps",

@@ -55,7 +55,7 @@
 #'   \code{c(no = "...", yes = "...")}, used by \code{scale_fill_manual()} and \code{scale_color_manual()}.
 #'   Default \code{c(no = "grey75", yes = "#FFC010")}.
 #' @param point_size Numeric; point size for the base layer. Default \code{2}.
-#' @param point_alpha Numeric in [0,1]; base point transparency. Default \code{0.85}.
+#' @param point_alpha Numeric in \code{(0,1]}; base point transparency. Default \code{0.85}.
 #' @param label_seqs Character vector of peptide sequences to label by text (non-overlapping) and rings. Default \code{NULL}.
 #' @param label_size Numeric; text size for labels. Default \code{3}.
 #' @param label_col Character; label text and marker border color. Default \code{"black"}.
@@ -128,7 +128,6 @@
 #'   highlight_stroke = 2
 #' )
 #' v4$C40_G_N_vs_C40_I_N
-#' }
 #'
 #' # 5) suppose you ran ttestPeptides() not with the default settings:
 #' my_lfc_thresh <- 2
@@ -151,6 +150,8 @@
 #'   alpha          = my_alpha
 #' )
 #' v5$C40_G_N_vs_C40_I_N
+#'
+#' }
 #'
 #' @seealso \code{\link{ttestPeptides}}
 #'
