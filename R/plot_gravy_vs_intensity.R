@@ -40,7 +40,7 @@ plot_gravy_vs_intensity <- function(result,
                                     filter_params = NULL,
                                     facet_rows    = NULL,
                                     facet_cols    = NULL,
-                                    alpha_var     = 0.8
+                                    alpha_value   = 0.8
 ) {
   # validate arguments
   type     <- match.arg(type)
@@ -79,13 +79,13 @@ plot_gravy_vs_intensity <- function(result,
   if (color_by == "none") {
     p <- ggplot(dt, aes(x = GRAVY.score,
                         y = .data[[y_var]])) +
-      geom_point(color = def_color, alpha = alpha_var) +
+      geom_point(color = def_color, alpha = alpha_value) +
       theme_pubr()
   } else {
     p <- ggplot(dt, aes(x = GRAVY.score,
                         y = .data[[y_var]],
                         color = .data[[color_by]])) +
-      geom_point(alpha = alpha_var) +
+      geom_point(alpha = alpha_value) +
       scale_color_manual(values = protein_color) +
       theme_pubr()
   }

@@ -11,7 +11,7 @@ plot_gravy_vs_intensity(
   filter_params = NULL,
   facet_rows = NULL,
   facet_cols = NULL,
-  alpha_var = 0.8
+  alpha_value = 0.8
 )
 }
 \arguments{
