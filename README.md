@@ -17,7 +17,7 @@ studies. This README introduces the package through three parts:
 
 ## ✨ Functions
 
-### Data processing — `processPeptides()`
+### 1) Data processing — `processPeptides()`
 
 - Import MaxQuant *peptides* file, intensity-column metadata, and
   protein mapping.
@@ -27,7 +27,79 @@ studies. This README introduces the package through three parts:
 - Map parent protein name and protein group for each peptide.
 - Calculate peptide GRAVY scores.
 
-### Filtering & statistics
+`processPeptides()` accepts each argument either as a file path or as an
+in-memory `data.frame`/`data.table`. When you pass a path, the function
+reads the file with `data.table::fread()`, so tab-, comma-, or
+semicolon-delimited text exports (including the default MaxQuant `.txt`
+peptide export) can be used directly. If your data lives in Excel
+workbooks, import them first (e.g. `openxlsx::read.xlsx()`) and pass the
+resulting table.
+
+#### Required input files
+
+##### 1. MaxQuant peptide export (`peptides_file`)
+
+- Must contain the structural columns used to derive cleavage
+  information and peptide identities.
+- All intensity columns referenced in the metadata file must be present
+  and **numeric** so that replicate means can be computed.
+
+Example:
+
+| Sequence | Leading razor protein | Length | Start position | End position | Amino acid before | First amino acid | Last amino acid | Amino acid after | Intensity Y1G120_1 | Intensity Y1G120_2 | Intensity Y2G120_1 |
+|----|----|----|----|----|----|----|----|----|----|----|----|
+| AAGGPGAPADPGRPT | P81265 | 15 | 609 | 623 | D | A | T | G | 40332000 | 51443000 | 39094000 |
+| AAIDEASKKLNAQ | P15497 | 13 | 253 | 265 | L | A | Q | – | 18167000 | 26893000 | 17524000 |
+
+##### 2. Intensity-column metadata (`intensity_columns_file`)
+
+- Each row maps a single intensity column to the replicate and all
+  associated grouping variables (e.g. digest stage, treatment).
+- The non-`Intensity.column` fields must **uniquely identify** the row;
+  they define the nested grouping structure used to calculate replicate
+  and group summaries.
+- It is recommended to use dots (`.`) instead of spaces in column names
+  for easier programming.
+
+Example:
+
+| Intensity.column   | Digest.stage | Yogurt | Replicate |
+|--------------------|--------------|--------|-----------|
+| Intensity Y1G120_1 | G120         | Y1     | 1         |
+| Intensity Y1G120_2 | G120         | Y1     | 2         |
+| Intensity Y2G120_1 | G120         | Y2     | 1         |
+
+##### 3. Protein mapping (`protein_mapping_file`)
+
+- Provides human-readable protein names and groups for each
+  `Leading.razor.protein` identifier.
+- Missing matches are filled with the fallback levels “Others” and
+  “Whey”.
+- A curated default mapping ships with the package as an in-memory
+  dataset you can load via
+  `data("peptidomics_protein_mapping_example")`.
+
+Example:
+
+| Leading.razor.protein    | Protein.name | Protein.group |
+|--------------------------|--------------|---------------|
+| UNIPROT:A0A452FK23_CAPHI | Beta-casein  | Casein        |
+| UNIPROT:CASB_CAPHI       | Beta-casein  | Casein        |
+| UNIPROT:A0A452G9D9_CAPHI | Kappa-casein | Casein        |
+
+To use the in-memory default mapping file, call:
+
+``` r
+data(peptidomics_protein_mapping_example)
+
+processPeptides(
+  peptides_file = "path/to/your/peptides.txt",
+  intensity_columns_file = "path/to/your/Intensity_columns.csv",
+  protein_mapping_file = peptidomics_protein_mapping_example
+)
+```
+
+### 2) Filtering & statistics
 
 - **PCA** analysis to pre-check group separation — `pcaPeptides()`.
 - Subset by sequence, regex pattern, or grouping variables —
@@ -35,7 +107,7 @@ studies. This README introduces the package through three parts:
 - Compare specific groups using statistical analysis to identify
   significantly different peptides with — `ttestPeptides()`.
 
-### Visualization
+### 3) Visualization
 
 - Stacked bar plots of **peptide intensities** by parent proteins —
   `plot_int()`.
@@ -101,7 +173,17 @@ result <- processPeptides(
 
 ### 2) Mean peptide intensities by parent proteins
 
-![](README_files/figure-gfm/pressure-1.png)<!-- -->
+``` r
+plot_int(
+  result,
+  x_var         = "Yogurt",
+  type          = "mean",
+  filter_params = list(Digest.stage = "G120"),
+  color_by      = "Protein.name"
+)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 ### 3) Peptide-length distribution (by intensity)
 
@@ -113,7 +195,7 @@ plot_length_distribution(
 )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 ### 4) Cleavage-site intensity (N and/or C termini)
 
@@ -129,7 +211,7 @@ plot_cleavage_site(
 )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ------------------------------------------------------------------------
 
