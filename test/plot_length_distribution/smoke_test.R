@@ -29,7 +29,8 @@ p_density <- plot_length_distribution(
   result,
   type      = "reps",
   metric    = "count",
-  plot_mode = "density"
+  plot_mode = "density",
+  facet_rows = "Digest.stage"
 )
 stopifnot(inherits(p_density, "ggplot"))
 

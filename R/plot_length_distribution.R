@@ -3,8 +3,8 @@
 #' @description
 #' Summarizes and visualizes the distribution of peptide lengths,
 #' either by total intensity or by peptide counts, stacking by protein group or name,
-#' or overlaying sample-level density curves, with optional filtering, faceting,
-#' and scientific notation on the y-axis.
+#' or overlaying sample-level density curves, with optional filtering,
+#' faceting, and scientific notation on the y-axis.
 #'
 #' @param result List. Output of \code{processPeptides()}, containing at least:
 #'   \itemize{
@@ -18,7 +18,7 @@
 #' @param metric Character. Which metric to plot: \code{"intensity"} for summed intensities,
 #'   or \code{"count"} for peptide counts. Default: \code{"intensity"}.
 #' @param color_by Character. Fill aesthetic: \code{"Protein.group"}, \code{"Protein.name"}, or \code{"none"}.
-#'   Default: \code{"Protein.group"}. Ignored when \code{plot_mode = "density"}.
+#'   Default: \code{"Protein.group"}. Ignored when \code{plot_mode = "density"}, which uses sample-wise colors.
 #' @param filter_params Named list, or \code{NULL}.  Each element’s name is a grouping column,
 #'   and its value is a vector of values to include.  Multiple names impose an AND filter.
 #'   For example: \code{list(Lipid = c("N","S"), Digest.stage = "G")}
@@ -33,8 +33,8 @@
 #' @param scientific_10_y Logical.  If \code{TRUE}, use scientific notation for y-axis.
 #'   Default: \code{TRUE}. Ignored when \code{plot_mode = "density"}.
 #' @param plot_mode Character. Choose between stacked \code{"bar"} (default) or overlaid
-#'   \code{"density"} plots. In density mode, samples are distinguished by color in a single panel,
-#'   ignoring \code{color_by}, \code{facet_rows}, and \code{facet_cols}.
+#'   \code{"density"} plots. Density mode colors samples by grouping combinations and keeps
+#'   them in one panel by default, but still honors \code{facet_rows}/\code{facet_cols} if provided.
 #'
 #' @return A \code{ggplot} object.
 #'
@@ -66,12 +66,13 @@
 #'   scientific_10_y  = FALSE
 #' )
 #'
-#' # Plot replicate-level density curves colored by sample metadata
+#' # Plot replicate-level density curves colored by sample metadata and facet by Digest.stage
 #' p3 <- plot_length_distribution(
 #'   result,
 #'   type       = "reps",
 #'   metric     = "count",
-#'   plot_mode  = "density"
+#'   plot_mode  = "density",
+#'   facet_rows = "Digest.stage"
 #' )
 #' }
 #'
@@ -187,10 +188,7 @@ plot_length_distribution <- function(result,
       ))
     }
   } else {
-    # density mode ignores faceting and protein color mapping
-    if (!is.null(facet_rows) || !is.null(facet_cols)) {
-      warning("Density mode plots all samples in one panel; faceting arguments are ignored.")
-    }
+    # density mode ignores protein color mapping, uses grouping combinations instead
     sample_vars <- grp_cols
     if (type == "reps") sample_vars <- c(sample_vars, "Replicate")
     if (length(sample_vars) == 0) {
@@ -210,6 +208,11 @@ plot_length_distribution <- function(result,
       scale_color_manual(values = sample_colors) +
       labs(color = "Sample", y = "Density") +
       theme_pubr()
+    if (!is.null(facet_rows) || !is.null(facet_cols)) {
+      rows <- if (!is.null(facet_rows)) facet_rows else "."
+      cols <- if (!is.null(facet_cols)) facet_cols else "."
+      p <- p + facet_grid(as.formula(paste(rows, "~", cols)))
+    }
   }
 
   p
