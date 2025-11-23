@@ -33,8 +33,9 @@
 #' @param scientific_10_y Logical.  If \code{TRUE}, use scientific notation for y-axis.
 #'   Default: \code{TRUE}. Ignored when \code{plot_mode = "density"}.
 #' @param plot_mode Character. Choose between stacked \code{"bar"} (default) or overlaid
-#'   \code{"density"} plots. Density mode colors samples by grouping combinations and keeps
-#'   them in one panel by default, but still honors \code{facet_rows}/\code{facet_cols} if provided.
+#'   \code{"density"} plots. Density mode colors samples by the combination of grouping variables
+#'   that still differ within a panel (excluding any facet variables) and honors
+#'   \code{facet_rows}/\code{facet_cols} if provided.
 #'
 #' @return A \code{ggplot} object.
 #'
@@ -191,11 +192,27 @@ plot_length_distribution <- function(result,
     # density mode ignores protein color mapping, uses grouping combinations instead
     sample_vars <- grp_cols
     if (type == "reps") sample_vars <- c(sample_vars, "Replicate")
+    # drop grouping vars that no longer vary after filtering
+    if (length(sample_vars)) {
+      sample_vars <- sample_vars[
+        vapply(sample_vars, function(v) length(unique(dt[[v]])) > 1, logical(1))
+      ]
+    }
+    parse_facets <- function(x) {
+      if (is.null(x) || identical(x, ".")) return(character())
+      out <- unique(unlist(strsplit(x, "\\+")))
+      out <- trimws(out)
+      out[out != ""]
+    }
+    facet_vars <- unique(c(parse_facets(facet_rows), parse_facets(facet_cols)))
+    sample_vars <- setdiff(sample_vars, facet_vars)
     if (length(sample_vars) == 0) {
       dt[, Sample := "Sample"]
+      legend_title <- "Sample"
     } else {
       dt[, Sample := interaction(.SD, sep = "_", drop = TRUE),
          .SDcols = sample_vars]
+      legend_title <- paste(sample_vars, collapse = " × ")
     }
     sample_levels <- sort(unique(dt$Sample))
     sample_colors <- setNames(
@@ -206,7 +223,7 @@ plot_length_distribution <- function(result,
                         color = Sample)) +
       geom_density(aes(weight = .data[[y_var]]), linewidth = 1) +
       scale_color_manual(values = sample_colors) +
-      labs(color = "Sample", y = "Density") +
+      labs(color = legend_title, y = "Density") +
       theme_pubr()
     if (!is.null(facet_rows) || !is.null(facet_cols)) {
       rows <- if (!is.null(facet_rows)) facet_rows else "."

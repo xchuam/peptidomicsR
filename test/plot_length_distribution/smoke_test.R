@@ -33,5 +33,6 @@ p_density <- plot_length_distribution(
   facet_rows = "Digest.stage"
 )
 stopifnot(inherits(p_density, "ggplot"))
+stopifnot(identical(p_density$labels$colour, "Yogurt × Replicate"))
 
 cat("plot_length_distribution smoke test completed\n")
