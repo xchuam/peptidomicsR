@@ -11,7 +11,8 @@ plot_gravy_vs_intensity(
   filter_params = NULL,
   facet_rows = NULL,
   facet_cols = NULL,
-  alpha_value = 0.8
+  alpha_value = 0.8,
+  plot_mode = c("scatter", "density")
 )
 }
 \arguments{
@@ -25,8 +26,8 @@ plot_gravy_vs_intensity(
 \item{type}{Character. Which data to plot: \code{"mean"} for group means,
 or \code{"reps"} for replicate-level points.  Default: \code{"mean"}}
 
-\item{color_by}{Character. Fill aesthetic: \code{"Protein.group"}, \code{"Protein.name"}, or \code{"none"}.
-Default: \code{"Protein.group"}.}
+\item{color_by}{Character. Color aesthetic for scatter plots: \code{"Protein.group"}, \code{"Protein.name"}, or \code{"none"}.
+Default: \code{"Protein.group"}. Ignored when \code{plot_mode = "density"}.}
 
 \item{filter_params}{Named list, or \code{NULL}.  Each element’s name is a grouping column,
 and its value is a vector of values to include.  Multiple names impose an AND filter.
@@ -42,8 +43,12 @@ Defaults to \code{"Replicate"} if \code{type = "reps"} and not explicitly set.
 You can combine multiple variables with a plus, e.g.
 \code{"Lipid+Replicate"}.  Default: \code{NULL}.}
 
-\item{alpha_value}{Numeric. Transparency level for points (0 = fully transparent, 1 = fully opaque).
-Default: \code{0.8}.}
+\item{alpha_value}{Numeric. Transparency level for scatter plot points (0 = fully transparent, 1 = fully opaque).
+Default: \code{0.8}. Ignored when \code{plot_mode = "density"}.}
+
+\item{plot_mode}{Character. Choose between point \code{"scatter"} (default) or GRAVY score
+\code{"density"} plots. Density mode colors lines by the minimal set of grouping variables
+(excluding facets) that still vary after filtering, and faceting remains available.}
 }
 \value{
 A \code{ggplot} object.
@@ -51,4 +56,26 @@ A \code{ggplot} object.
 \description{
 Visualize the relationship between peptide GRAVY score and log10-transformed intensity,
 either at the mean (across replicates) or individual replicate level.
+Alternatively, display density curves of GRAVY score distributions weighted by intensity.
+}
+\examples{
+\dontrun{
+result <- processPeptides(
+  peptides_file          = "data/Yogurtexample_QR188-205.csv",
+  intensity_columns_file = "data/Intensity_columns.csv",
+  protein_mapping_file   = "data/protein_mapping.csv"
+)
+# Scatter plot of GRAVY score vs log10 mean intensity
+plot_gravy_vs_intensity(result)
+
+# Density plot per replicate, faceted by Digest.stage and filtered to Yogurt Y1
+plot_gravy_vs_intensity(
+  result,
+  type          = "reps",
+  plot_mode     = "density",
+  facet_rows    = "Digest.stage",
+  filter_params = list(Yogurt = "Y1")
+)
+}
+
 }

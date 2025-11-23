@@ -12,7 +12,8 @@ plot_length_distribution(
   filter_params = NULL,
   facet_rows = NULL,
   facet_cols = NULL,
-  scientific_10_y = TRUE
+  scientific_10_y = TRUE,
+  plot_mode = c("bar", "density")
 )
 }
 \arguments{
@@ -31,7 +32,7 @@ plot_length_distribution(
 or \code{"count"} for peptide counts. Default: \code{"intensity"}.}
 
 \item{color_by}{Character. Fill aesthetic: \code{"Protein.group"}, \code{"Protein.name"}, or \code{"none"}.
-Default: \code{"Protein.group"}.}
+Default: \code{"Protein.group"}. Ignored when \code{plot_mode = "density"}, which uses sample-wise colors.}
 
 \item{filter_params}{Named list, or \code{NULL}.  Each element’s name is a grouping column,
 and its value is a vector of values to include.  Multiple names impose an AND filter.
@@ -48,7 +49,12 @@ You can combine multiple variables with a plus, e.g.
 \code{"Lipid+Replicate"}.  Default: \code{NULL}.}
 
 \item{scientific_10_y}{Logical.  If \code{TRUE}, use scientific notation for y-axis.
-Default: \code{TRUE}.}
+Default: \code{TRUE}. Ignored when \code{plot_mode = "density"}.}
+
+\item{plot_mode}{Character. Choose between stacked \code{"bar"} (default) or overlaid
+\code{"density"} plots. Density mode colors samples by the combination of grouping variables
+that still differ within a panel (excluding any facet variables) and honors
+\code{facet_rows}/\code{facet_cols} if provided.}
 }
 \value{
 A \code{ggplot} object.
@@ -56,14 +62,15 @@ A \code{ggplot} object.
 \description{
 Summarizes and visualizes the distribution of peptide lengths,
 either by total intensity or by peptide counts, stacking by protein group or name,
-with optional filtering, faceting, and scientific notation on the y-axis.
+or overlaying sample-level density curves, with optional filtering,
+faceting, and scientific notation on the y-axis.
 }
 \examples{
 \dontrun{
 result <- processPeptides(
-  peptides_file          = "../Data/peptides.txt",
-  intensity_columns_file = "../Data/Intensity_columns.csv",
-  protein_mapping_file   = "../Data/protein_mapping.csv"
+  peptides_file          = "data/Yogurtexample_QR188-205.csv",
+  intensity_columns_file = "data/Intensity_columns.csv",
+  protein_mapping_file   = "data/protein_mapping.csv"
 )
 # Plot mean Intensity vs. length, filter Lipid == "N", facet by Casein.ratio and Digest.stage
 p1 <- plot_length_distribution(
@@ -84,6 +91,15 @@ p2 <- plot_length_distribution(
   facet_rows       = "Casein.ratio+Digest.stage",
   facet_cols       = "Lipid+Replicate",
   scientific_10_y  = FALSE
+)
+
+# Plot replicate-level density curves colored by sample metadata and facet by Digest.stage
+p3 <- plot_length_distribution(
+  result,
+  type       = "reps",
+  metric     = "count",
+  plot_mode  = "density",
+  facet_rows = "Digest.stage"
 )
 }
 
