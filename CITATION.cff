@@ -7,7 +7,7 @@ abstract: >
   including MaxQuant peptide processing, flexible plotting utilities, peptide
   length distributions, GRAVY scores, and group comparisons.
 
-version: "1.0.0-alpha"
+version: "1.1.0-alpha"
 license: GPL-3.0-or-later
 repository-code: "https://github.com/xchuam/peptidomicsR"
 url: "https://github.com/xchuam/peptidomicsR"
@@ -41,7 +41,7 @@ contact:
 preferred-citation:
   type: software
   title: "peptidomicsR"
-  version: "0.1.0"
+  version: "1.1.0"
   authors:
     - family-names: Ma
       given-names: Xuchuan
