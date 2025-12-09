@@ -53,6 +53,7 @@ BiocManager::install("limma")
 -   **Peptide-length distribution** (by intensity or counts) --- `plot_length_distribution()`.
 -   **Cleavage-site** intensity (N/C/both termini) --- `plot_cleavage_site()`.
 -   **GRAVY vs. intensity** scatter --- `plot_gravy_vs_intensity()`.
+-   **Peptide alignment** along a selected protein --- `plot_pep_align()`.
 -   **PCA** plot to quickly assess group separation --- `plot_pcaPeptides()`.
 -   **Volcano plot(s)** for differential tests (t.test or limma) --- `plot_volcano()`.
 
@@ -122,7 +123,60 @@ plot_length_distribution(
 )
 ```
 
-### 4) Cleavage-site intensity (N and/or C termini)
+### 4) Peptide alignment along a protein
+
+Start with a minimal call (sequence is auto-looked-up if present):
+
+```{r}
+plot_pep_align(result, protein_name = "P02662")
+```
+
+If the sequence is missing in the mapping, supply it manually using the packaged
+example table:
+
+```{r}
+data(peptidomics_protein_mapping_example)
+alpha_seq <- peptidomics_protein_mapping_example[
+  peptidomics_protein_mapping_example[["Leading.razor.protein"]] == "P02662",
+  "Protein.seq"
+]
+
+plot_pep_align(
+  result,
+  protein_name = "P02662",
+  protein_seq  = alpha_seq
+)
+```
+
+Add grouping filters, replicate mode, and axis controls together:
+
+```{r}
+plot_pep_align(
+  result,
+  protein_name  = "P02662",
+  protein_seq   = alpha_seq,
+  type          = "reps",
+  filter_params = list(Yogurt = "Y1"),
+  x_interval    = 20,
+  x_range       = c(0, 260),
+  y_range       = c(0, 12)
+)
+```
+
+If your peptide table uses non-standard column names, override them explicitly:
+
+```{r}
+plot_pep_align(
+  result,
+  protein_name = "P02662",
+  protein_seq  = alpha_seq,
+  seq_col      = "Sequence",
+  start_col    = "Start.position",
+  end_col      = "End.position"
+)
+```
+
+### 5) Cleavage-site intensity (N and/or C termini)
 
 ```{r}
 plot_cleavage_site(
