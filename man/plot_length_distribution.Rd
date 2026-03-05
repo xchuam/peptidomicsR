@@ -36,17 +36,17 @@ Default: \code{"Protein.group"}. Ignored when \code{plot_mode = "density"}, whic
 
 \item{filter_params}{Named list, or \code{NULL}.  Each element’s name is a grouping column,
 and its value is a vector of values to include.  Multiple names impose an AND filter.
-For example: \code{list(Lipid = c("N","S"), Digest.stage = "G")}
+For example: \code{list(Yogurt = c("Y1","Y2"), Digest.stage = "G120")}
 Default: \code{NULL} (no filtering).}
 
 \item{facet_rows}{Character(1) or \code{NULL}.  Name of grouping column(s) for row facets.
 You can combine multiple variables with a plus: e.g.
-\code{"Casein.ratio+Digest.stage"}.  Default: \code{NULL}.}
+\code{"Yogurt+Digest.stage"}.  Default: \code{NULL}.}
 
 \item{facet_cols}{Character(1) or \code{NULL}.  Name of grouping column(s) for column facets.
 Defaults to \code{"Replicate"} if \code{type = "reps"} and not explicitly set.
 You can combine multiple variables with a plus, e.g.
-\code{"Lipid+Replicate"}.  Default: \code{NULL}.}
+\code{"Yogurt+Replicate"}.  Default: \code{NULL}.}
 
 \item{scientific_10_y}{Logical.  If \code{TRUE}, use scientific notation for y-axis.
 Default: \code{TRUE}. Ignored when \code{plot_mode = "density"}.}
@@ -72,24 +72,24 @@ result <- processPeptides(
   intensity_columns_file = "data/Intensity_columns.csv",
   protein_mapping_file   = "data/protein_mapping.csv"
 )
-# Plot mean Intensity vs. length, filter Lipid == "N", facet by Casein.ratio and Digest.stage
+# Plot mean intensity vs. length, filter Yogurt == "Y1", facet by Digest.stage and Yogurt
 p1 <- plot_length_distribution(
   result,
   metric           = "intensity",
-  filter_params    = list(Lipid = "N"),
-  facet_rows       = "Casein.ratio",
-  facet_cols       = "Digest.stage"
+  filter_params    = list(Yogurt = "Y1"),
+  facet_rows       = "Digest.stage",
+  facet_cols       = "Yogurt"
 )
 # Plot replicate‐level count vs. length,
 colored by protein name, not scientific y-axis,
-facet row by Casein.ratio+Digest.stage, col by Lipid+Replicate
+facet row by Digest.stage, col by Yogurt+Replicate
 p2 <- plot_length_distribution(
   result,
   type             = "reps",
   metric           = "count",
   color_by         = "Protein.name",
-  facet_rows       = "Casein.ratio+Digest.stage",
-  facet_cols       = "Lipid+Replicate",
+  facet_rows       = "Digest.stage",
+  facet_cols       = "Yogurt+Replicate",
   scientific_10_y  = FALSE
 )
 

@@ -23,15 +23,15 @@
 #'   Default: \code{"Protein.group"}.
 #' @param filter_params Named list, or \code{NULL}.  Each element’s name is a grouping column,
 #'   and its value is a vector of values to include.  Multiple names impose an AND filter.
-#'   For example: \code{list(Lipid = c("N","S"), Digest.stage = "G")}
+#'   For example: \code{list(Yogurt = c("Y1","Y2"), Digest.stage = "G120")}
 #'   Default: \code{NULL} (no filtering).
 #' @param facet_rows Character(1) or \code{NULL}.  Name of grouping column(s) for row facets.
 #'   You can combine multiple variables with a plus: e.g.
-#'   \code{"Casein.ratio+Digest.stage"}.  Default: \code{NULL}.
+#'   \code{"Yogurt+Digest.stage"}.  Default: \code{NULL}.
 #' @param facet_cols Character(1) or \code{NULL}.  Name of grouping column(s) for column facets.
 #'   Defaults to \code{"Replicate"} if \code{type = "reps"} and not explicitly set.
 #'   You can combine multiple variables with a plus, e.g.
-#'   \code{"Lipid+Replicate"}.  Default: \code{NULL}.
+#'   \code{"Yogurt+Replicate"}.  Default: \code{NULL}.
 #' @param scientific_10_y Logical.  If \code{TRUE}, use scientific notation for y-axis.
 #'   Default: \code{TRUE}.
 #'
@@ -40,39 +40,39 @@
 #' @examples
 #' \dontrun{
 #' result <- processPeptides(
-#'   peptides_file          = "../Data/peptides.txt",
-#'   intensity_columns_file = "../Data/Intensity_columns.csv",
-#'   protein_mapping_file   = "../Data/protein_mapping.csv"
+#'   peptides_file          = "data/Yogurtexample_QR188-205.csv",
+#'   intensity_columns_file = "data/Intensity_columns.csv",
+#'   protein_mapping_file   = "data/protein_mapping.csv"
 #' )
 #'
 #' # 1) Simple replicate‐level, default x, default facet="Replicate"
 #' p1 <- plot_int(result, type = "reps")
 #'
-#' # 2) Simple mean‐level, x = Lipid, color by Protein.name, y axis not scientific notation
+#' # 2) Simple mean‐level, x = Yogurt, color by Protein.name, y axis not scientific notation
 #' p2 <- plot_int(result,
 #'                type             = "mean",
-#'                x_var            = "Lipid",
+#'                x_var            = "Yogurt",
 #'                color_by         = "Protein.name",
 #'                scientific_10_y  = FALSE)
 #'
-#' # 3) Complex filter: Lipid in N or S AND Digest.stage == "G"
+#' # 3) Complex filter: Yogurt in Y1 or Y2 AND Digest.stage == "G120"
 #' p3 <- plot_int(result,
 #'                type          = "reps",
-#'                filter_params = list(Lipid = c("N","S"),
-#'                                     Digest.stage = "G"))
+#'                filter_params = list(Yogurt = c("Y1","Y2"),
+#'                                     Digest.stage = "G120"))
 #'
-#' # 4) Complex filter to exclude a level (NOT): all Lipids except "N"
+#' # 4) Complex filter to exclude a level (NOT): all Yogurts except "Y1"
 #' p4 <- plot_int(result,
 #'                type          = "reps",
 #'                filter_params = list(
-#'                Lipid         = setdiff(unique(result$dt.peptides.int.reps$Lipid), "N")
+#'                Yogurt        = setdiff(unique(result$dt.peptides.int.reps$Yogurt), "Y1")
 #'                ))
 #'
-#' # 5) Multi‐variable faceting: rows = Casein.ratio+Digest.stage, cols = Lipid+Replicate
+#' # 5) Multi‐variable faceting: rows = Yogurt+Digest.stage, cols = Replicate
 #' p5 <- plot_int(result,
 #'                type        = "reps",
-#'                facet_rows  = "Casein.ratio+Digest.stage",
-#'                facet_cols  = "Lipid+Replicate")
+#'                facet_rows  = "Yogurt+Digest.stage",
+#'                facet_cols  = "Replicate")
 #' }
 #'
 #' @import ggplot2

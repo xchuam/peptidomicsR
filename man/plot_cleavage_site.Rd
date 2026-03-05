@@ -35,7 +35,7 @@ Default: \code{"mean"}.}
 
 \item{filter_params}{Named list, or \code{NULL}.  Each element’s name is a grouping column,
 and its value is a vector of values to include.  Multiple names impose an AND filter.
-For example: \code{list(Lipid = c("N","S"), Digest.stage = "G")}
+For example: \code{list(Yogurt = c("Y1","Y2"), Digest.stage = "G120")}
 Default: \code{NULL} (no filtering).}
 
 \item{scientific_10_y}{Logical.  If \code{TRUE}, use scientific notation for y-axis.
@@ -62,9 +62,9 @@ x-axis only reflects variables that truly vary.
 \dontrun{
 # Prepare data
 result <- processPeptides(
-  peptides_file          = "../Data/peptides.txt",
-  intensity_columns_file = "../Data/Intensity_columns.csv",
-  protein_mapping_file   = "../Data/protein_mapping.csv"
+  peptides_file          = "data/Yogurtexample_QR188-205.csv",
+  intensity_columns_file = "data/Intensity_columns.csv",
+  protein_mapping_file   = "data/protein_mapping.csv"
 )
 
 # 1) N-terminal, mean over replicates, intensity
@@ -89,7 +89,7 @@ p3 <- plot_cleavage_site(
   terminal            = "both",
   measure             = "intensity",
   replicate_mode      = "mean",
-  filter_params       = list(Lipid = "N", Digest.stage = "G"),
+  filter_params       = list(Yogurt = "Y1"),
   drop_constant_groups = TRUE
 )
 
@@ -99,7 +99,7 @@ p4 <- plot_cleavage_site(
   terminal              = "N",
   measure               = "intensity",
   replicate_mode        = "mean",
-  filter_params         = list(Lipid = "N", Digest.stage = "G"),
+  filter_params         = list(Yogurt = "Y1", Digest.stage = "G120"),
   drop_constant_groups  = FALSE
 )
 }

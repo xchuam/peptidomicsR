@@ -23,15 +23,15 @@
 #'   Default: \code{"Protein.group"}.
 #' @param filter_params Named list, or \code{NULL}.  Each element’s name is a grouping column,
 #'   and its value is a vector of values to include.  Multiple names impose an AND filter.
-#'   For example: \code{list(Lipid = c("N","S"), Digest.stage = "G")}
+#'   For example: \code{list(Yogurt = c("Y1","Y2"), Digest.stage = "G120")}
 #'   Default: \code{NULL} (no filtering).
 #' @param facet_rows Character(1) or \code{NULL}.  Name of grouping column(s) for row facets.
 #'   You can combine multiple variables with a plus: e.g.
-#'   \code{"Casein.ratio+Digest.stage"}.  Default: \code{NULL}.
+#'   \code{"Yogurt+Digest.stage"}.  Default: \code{NULL}.
 #' @param facet_cols Character(1) or \code{NULL}.  Name of grouping column(s) for column facets.
 #'   Defaults to \code{"Replicate"} if \code{type = "reps"} and not explicitly set.
 #'   You can combine multiple variables with a plus, e.g.
-#'   \code{"Lipid+Replicate"}.  Default: \code{NULL}.
+#'   \code{"Yogurt+Replicate"}.  Default: \code{NULL}.
 #' @param scientific_10_y Logical.  If \code{TRUE}, use scientific notation for y-axis.
 #'   Default: \code{TRUE}.
 #'
@@ -40,32 +40,32 @@
 #' @examples
 #' \dontrun{
 #' result <- processPeptides(
-#'   peptides_file          = "../Data/peptides.txt",
-#'   intensity_columns_file = "../Data/Intensity_columns.csv",
-#'   protein_mapping_file   = "../Data/protein_mapping.csv"
+#'   peptides_file          = "data/Yogurtexample_QR188-205.csv",
+#'   intensity_columns_file = "data/Intensity_columns.csv",
+#'   protein_mapping_file   = "data/protein_mapping.csv"
 #' )
 #' # 1) Simple replicate‐level, default x, default facet="Replicate"
 #' p1 <- plot_count(result, type = "reps")
 #'
-#' # 2) Simple mean‐level, x = Lipid, color by Protein.name
+#' # 2) Simple mean‐level, x = Yogurt, color by Protein.name
 #' p2 <- plot_count(result,
 #'                 type           = "mean",
-#'                 x_var          = "Lipid",
+#'                 x_var          = "Yogurt",
 #'                 color_by       = "Protein.name")
 #'
-#' # 3) Filter Lipid == "N" AND Digest.stage == "I", scientific notation y, default mean‐level
+#' # 3) Filter Yogurt == "Y1" AND Digest.stage == "I120", scientific notation y, default mean‐level
 #' p3 <- plot_count(
 #'   result,
-#'   filter_params = list(Lipid = "N", Digest.stage = "I"),
+#'   filter_params = list(Yogurt = "Y1", Digest.stage = "I120"),
 #'   scientific_10_y = TRUE
 #' )
 #'
-#' # 4) Multi-variable faceting: rows = Digest.stage, cols = Lipid+Replicate
+#' # 4) Multi-variable faceting: rows = Digest.stage, cols = Yogurt+Replicate
 #' p4 <- plot_count(
 #'   result,
 #'   type        = "reps",
 #'   facet_rows  = "Digest.stage",
-#'   facet_cols  = "Lipid+Replicate"
+#'   facet_cols  = "Yogurt+Replicate"
 #' )
 #' }
 #'

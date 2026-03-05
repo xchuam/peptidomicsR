@@ -20,20 +20,19 @@
 #'     \item \code{grp_cols}: character vector of grouping columns to define sample groups.
 #'   }
 #' @param comparisons Either:
-#'   * a list of character pairs, e.g. `list(list(c("C40_G_N", "C40_G_S")), list(c("C40_G", "C40_G")))`,
+#'   * a list of character pairs, e.g. `list(c("G120_Y1", "I120_Y1"), c("G120_Y1", "G120_Y2"))`,
 #'   or
-#'   * a single character vector of length 2, e.g. `c("C40_G_N", "C40_G_S")`.
+#'   * a single character vector of length 2, e.g. `c("G120_Y1", "I120_Y1")`.
 #'   Each selector is a character string describing one set of samples, using the levels from
 #'   `result$grp_cols` joined by underscores. Order of tokens is flexible.
 #'   Examples:
-#'   * `"C40_G_N"` vs `"C40_G_S"`: full specification (Casein.ratio = C40,
-#'     Digest.stage = G, Lipid = N vs S).
-#'   * `"C40_N_G"` vs `"C40_S_G"`: same as above, token order does not matter.
-#'   * `"C40_N"` vs `"C40_S"`: partial specification. Here, samples are pooled
+#'   * `"G120_Y1"` vs `"G120_Y2"`: full specification (Digest.stage = G120, Yogurt = Y1 vs Y2).
+#'   * `"Y1_G120"` vs `"Y2_G120"`: same as above, token order does not matter.
+#'   * `"Y1"` vs `"Y2"`: partial specification. Here, samples are pooled
 #'     across unspecified grouping columns (warning issued).
 #'   Disambiguation: If a token could belong to more than one grouping column,
-#'   use the `col=value` form. For example, `"Digest.stage=G_Lipid=G"` explicitly
-#'   selects `Digest.stage = G` and `Lipid = G`.
+#'   use the `col=value` form. For example, `"Digest.stage=G120_Yogurt=Y1"` explicitly
+#'   selects `Digest.stage = G120` and `Yogurt = Y1`.
 #' @param pseudocount Numeric. Value used to replace zero intensities before
 #'   statistical testing. This helps avoid issues with log2 transformation and division by zero.
 #'   Default \code{1}.
@@ -69,23 +68,23 @@
 #' \dontrun{
 #' # Prepare data
 #' result <- processPeptides(
-#'   peptides_file          = "../Data/peptides.txt",
-#'   intensity_columns_file = "../Data/Intensity_columns.csv",
-#'   protein_mapping_file   = "../Data/protein_mapping.csv"
+#'   peptides_file          = "data/Yogurtexample_QR188-205.csv",
+#'   intensity_columns_file = "data/Intensity_columns.csv",
+#'   protein_mapping_file   = "data/protein_mapping.csv"
 #' )
 #'
 #'
 #' #  1) One test via limma TREAT (default) with specification of groups
 #' ttest.1 <- ttestPeptides(
 #'   result,
-#'   comparisons = list(c("C40_G_N", "C40_I_N"))
+#'   comparisons = list(c("G120_Y1", "I120_Y1"))
 #' )
 #'
 #' #  2) For one test, the comparisons can be a a single character vector
 #' # Here we use plain Welch t-test
 #' ttest.2 <- ttestPeptides(
 #'   result,
-#'   comparisons = c("C40_G_N", "C40_I_N"),
+#'   comparisons = c("G120_Y1", "I120_Y1"),
 #'   test_method = "plain"
 #' )
 #'
@@ -93,30 +92,30 @@
 #' # Same comparison, different token order
 #' ttest.3 <- ttestPeptides(
 #'   result,
-#'   comparisons = list(c("G_N_C40", "I_N_C40"))
+#'   comparisons = list(c("Y1_G120", "Y1_I120"))
 #' )
 #'
 #' #  4) More than one test can be done at one time
 #' ttest.4 <- ttestPeptides(
 #'   result,
 #'   comparisons = list(
-#'     c("C40_G_N", "C40_I_N"),
-#'     c("C40_G_N", "C80_I_N")
+#'     c("G120_Y1", "I120_Y1"),
+#'     c("G120_Y1", "G120_Y2")
 #'   )
 #' )
 #'
 #' #  5) Partial specification (pools over omitted column)
 #' ttest.5 <- ttestPeptides(
 #'   result,
-#'   comparisons = list(c("C40_G", "C80_G"))
+#'   comparisons = list(c("Y1", "Y2"))
 #' )
 #'
 #' #  6) Explicit disambiguation using col=value syntax
 #' # Equivalent to Example 1 but written with explicit column names
 #' ttest.6 <- ttestPeptides(
 #'   result,
-#'   comparisons = list(c("Casein.ratio=C40_Digest.stage=G_Lipid=N",
-#'                        "Casein.ratio=C40_Digest.stage=I_Lipid=N"))
+#'   comparisons = list(c("Digest.stage=G120_Yogurt=Y1",
+#'                        "Digest.stage=I120_Yogurt=Y1"))
 #' )
 #'
 #'

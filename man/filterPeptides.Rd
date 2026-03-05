@@ -38,9 +38,9 @@ Returns the same list-of-tables structure so it will work with \code{plot_int()}
 \examples{
 \dontrun{
 result <- processPeptides(
-  peptides_file          = "../Data/peptides.txt",
-  intensity_columns_file = "../Data/Intensity_columns.csv",
-  protein_mapping_file   = "../Data/protein_mapping.csv"
+  peptides_file          = "data/Yogurtexample_QR188-205.csv",
+  intensity_columns_file = "data/Intensity_columns.csv",
+  protein_mapping_file   = "data/protein_mapping.csv"
 )
 
 # 1) exact sequence list
@@ -58,13 +58,13 @@ sub_result2 <- filterPeptides(
 # 3) combine with grouping filters
 sub_result3 <- filterPeptides(
   result        = result,
-  seq_pattern   = "PLFK$",
-  filter_params = list(Lipid = "N", Digest.stage = "G")
+  seq_pattern   = "DQAM",
+  filter_params = list(Yogurt = "Y1", Digest.stage = "G120")
 )
 
 # Then you can do e.g.
-plot_int(sub3)
-plot_count(sub3, type = "reps")
+plot_int(sub_result3)
+plot_count(sub_result3, type = "reps")
 }
 
 }

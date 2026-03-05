@@ -17,15 +17,15 @@
 #'   Default: \code{"Protein.group"}. Ignored when \code{plot_mode = "density"}.
 #' @param filter_params Named list, or \code{NULL}.  Each element’s name is a grouping column,
 #'   and its value is a vector of values to include.  Multiple names impose an AND filter.
-#'   For example: \code{list(Lipid = c("N","S"), Digest.stage = "G")}
+#'   For example: \code{list(Yogurt = c("Y1","Y2"), Digest.stage = "G120")}
 #'   Default: \code{NULL} (no filtering).
 #' @param facet_rows Character(1) or \code{NULL}.  Name of grouping column(s) for row facets.
 #'   You can combine multiple variables with a plus: e.g.
-#'   \code{"Casein.ratio+Digest.stage"}.  Default: \code{NULL}.
+#'   \code{"Yogurt+Digest.stage"}.  Default: \code{NULL}.
 #' @param facet_cols Character(1) or \code{NULL}.  Name of grouping column(s) for column facets.
 #'   Defaults to \code{"Replicate"} if \code{type = "reps"} and not explicitly set.
 #'   You can combine multiple variables with a plus, e.g.
-#'   \code{"Lipid+Replicate"}.  Default: \code{NULL}.
+#'   \code{"Yogurt+Replicate"}.  Default: \code{NULL}.
 #' @param alpha_value Numeric. Transparency level for scatter plot points (0 = fully transparent, 1 = fully opaque).
 #'   Default: \code{0.8}. Ignored when \code{plot_mode = "density"}.
 #' @param plot_mode Character. Choose between point \code{"scatter"} (default) or GRAVY score

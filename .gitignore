@@ -4,6 +4,10 @@
 .Ruserdata
 AGENTS.md
 .devcontainer/
+.Rlib
 
 Data/*.csv
+test/
+
+*.Rproj
 

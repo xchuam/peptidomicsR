@@ -40,16 +40,16 @@ Map protein name and protein group, calculate GRAVY score.
 \dontrun{
 # 1) Reading from files
 result <- processPeptides(
-  peptides_file          = "../Data/peptides.txt",
-  intensity_columns_file = "../Data/Intensity_columns.csv",
-  protein_mapping_file   = "../Data/protein_mapping.csv"
+  peptides_file          = "data/Yogurtexample_QR188-205.csv",
+  intensity_columns_file = "data/Intensity_columns.csv",
+  protein_mapping_file   = "data/protein_mapping.csv"
 )
 
 # 2) Reading from in-memory files
 library(data.table)
-dt_pep <- fread("../Data/peptides.txt", integer64 = "double")
-dt_lfq <- fread("../Data/Intensity_columns.csv")
-dt_map <- fread("../Data/protein_mapping.csv")
+dt_pep <- fread("data/Yogurtexample_QR188-205.csv", integer64 = "double")
+dt_lfq <- fread("data/Intensity_columns.csv")
+dt_map <- fread("data/protein_mapping.csv")
 result_2 <- processPeptides(
   peptides_file          = dt_pep,
   intensity_columns_file = dt_lfq,
