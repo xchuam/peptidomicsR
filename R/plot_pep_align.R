@@ -45,8 +45,30 @@
 #'   sequences to outline. Defaults to \code{NULL} (no labels).
 #' @param label_col Named list, or \code{NULL}. Optional colors for each label
 #'   name in \code{label_seq}. Any labels not listed here use internal defaults.
+#' @param auto_size Logical. If \code{TRUE}, compute recommended figure width and
+#'   height from visible x-span and stacked peptide rows. Defaults to \code{TRUE}.
+#' @param save_file_location Character(1), or \code{NULL}. If provided, saves the plot 
+#'   to this path via \code{ggplot2::ggsave()}. Useful in headless sessions where device
+#'   resizing is not available. When provided, the function returns the plot
+#'   invisibly. Defaults to \code{NULL}.
+#' @param save_file_dpi Numeric. DPI used by \code{ggplot2::ggsave()} when
+#'   \code{save_file_location} is provided. Defaults to \code{300}.
+#' @param width_per_aa Numeric. Width contribution (inches) per visible amino acid
+#'   position when \code{auto_size = TRUE}. Defaults to \code{0.1}.
+#' @param height_per_row Numeric. Height contribution (inches) per peptide stack
+#'   row when \code{auto_size = TRUE}. Defaults to \code{0.18}.
+#' @param min_width Numeric. Minimum auto-computed width in inches.
+#'   Defaults to \code{4}.
+#' @param min_height Numeric. Minimum auto-computed height in inches.
+#'   Defaults to \code{3}.
 #'
 #' @return A combined \code{ggplot} object with protein and peptide panels.
+#'   When \code{auto_size = TRUE}, attributes
+#'   \code{suggested_fig_width}, \code{suggested_fig_height}, and
+#'   \code{suggested_fig_size} are attached. These values can be used directly in
+#'   Quarto/Rmd chunk options (\code{fig-width}/\code{fig-height} in Quarto or
+#'   \code{fig.width}/\code{fig.height} in knitr). If \code{save_file_location}
+#'   is set, the same plot object is returned invisibly after saving.
 #'
 #' @examples
 #' \dontrun{
@@ -111,6 +133,33 @@
 #'   label_col    = list(highlight_1 = "red",
 #'                      highlight_2 = "blue")
 #' )
+#'
+#' # 7) Auto-size in console and inspect computed dimensions
+#' # auto_size is default TRUE
+#' p <- plot_pep_align(
+#'   result,
+#'   protein_name = "P02662",
+#'   auto_size = TRUE
+#' )
+#' attr(p, "suggested_fig_size")
+#'
+#' # This can be used in Quarto/Rmd chunk options
+#' p <- plot_pep_align(result, protein_name = "P02662")
+#' # Quarto/Rmd chunk options:
+#' #| fig-width: !expr attr(p, "suggested_fig_width")
+#' #| fig-height: !expr attr(p, "suggested_fig_height")
+#' # knitr (Rmd) chunk header:
+#' # {r, fig.width=attr(p, "suggested_fig_width"),
+#' #     fig.height=attr(p, "suggested_fig_height")}
+#'
+#' # 8) Save with auto-computed dimensions (works in headless sessions)
+#' plot_pep_align(
+#'   result,
+#'   protein_name = "P02662",
+#'   auto_size = TRUE,
+#'   save_file_location = "pep_align_P02662.png"
+#' )
+#'
 #' }
 #'
 #' @import ggplot2
@@ -132,7 +181,14 @@ plot_pep_align <- function(result,
                            y_range = NULL,
                            intensity_col = NULL,
                            label_seq = NULL,
-                           label_col = NULL) {
+                           label_col = NULL,
+                           auto_size = TRUE,
+                           save_file_location = NULL,
+                           save_file_dpi = 300,
+                           width_per_aa = 0.1,
+                           height_per_row = 0.18,
+                           min_width = 4,
+                           min_height = 3) {
   type <- match.arg(type)
 
   dt <- switch(
@@ -392,10 +448,9 @@ plot_pep_align <- function(result,
     if (is.null(y_range)) max(sdt$stack_row, na.rm = TRUE) else abs(y_range[1] - y_range[2]) + 1
   }, numeric(1))
   panel_heights <- pmax(1, panel_heights)
+  total_rows <- sum(panel_heights)
 
-  max_panel_h <- max(panel_heights)
-
-  build_panel <- function(sdt, h) {
+  build_panel <- function(sdt) {
     panel_id <- unique(sdt$sample_panel)
     letters_sub <- letter_dt[sample_panel == panel_id]
     ymax_use <- if (is.null(y_range)) max(sdt$stack_row, na.rm = TRUE) + 0.5 else rev(y_range)[1]
@@ -487,10 +542,7 @@ plot_pep_align <- function(result,
     p
   }
 
-  panel_plots <- mapply(function(sdt, h) {
-    p <- build_panel(sdt, h)
-    p
-  }, panel_list, panel_heights, SIMPLIFY = FALSE)
+  panel_plots <- lapply(panel_list, build_panel)
 
   p_pep <- patchwork::wrap_plots(panel_plots, ncol = 1, heights = panel_heights)
 
@@ -505,6 +557,51 @@ plot_pep_align <- function(result,
       legend.position = "bottom",
       legend.margin = margin(t = 0)
     )
+
+  if (isTRUE(auto_size)) {
+    visible_span <- if (!is.null(x_range)) {
+      abs(diff(range(x_range, na.rm = TRUE)))
+    } else {
+      as.numeric(protein_length)
+    }
+    if (!is.finite(visible_span) || visible_span <= 0) {
+      visible_span <- as.numeric(protein_length)
+    }
+    suggested_width <- max(min_width, visible_span * width_per_aa)
+    suggested_height <- max(min_height, total_rows * height_per_row)
+
+    if (!is.null(save_file_location)) {
+      ggplot2::ggsave(
+        filename = save_file_location,
+        plot = combined,
+        width = suggested_width,
+        height = suggested_height,
+        dpi = save_file_dpi,
+        limitsize = FALSE
+      )
+
+      attr(combined, "save_file_location") <- save_file_location
+    }
+
+    attr(combined, "suggested_fig_width") <- suggested_width
+    attr(combined, "suggested_fig_height") <- suggested_height
+    attr(combined, "suggested_fig_size") <- c(width = suggested_width, height = suggested_height)
+  } else {
+    if (!is.null(save_file_location)) {
+      ggplot2::ggsave(
+        filename = save_file_location,
+        plot = combined,
+        dpi = save_file_dpi,
+        limitsize = FALSE
+      )
+
+      attr(combined, "save_file_location") <- save_file_location
+    }
+  }
+
+  if (!is.null(attr(combined, "save_file_location"))) {
+    return(invisible(combined))
+  }
 
   combined
 }

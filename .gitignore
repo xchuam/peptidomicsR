@@ -5,6 +5,7 @@
 AGENTS.md
 .devcontainer/
 .Rlib
+.Rlibs
 
 Data/*.csv
 test/

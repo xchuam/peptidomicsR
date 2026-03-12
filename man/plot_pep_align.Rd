@@ -18,7 +18,14 @@ plot_pep_align(
   y_range = NULL,
   intensity_col = NULL,
   label_seq = NULL,
-  label_col = NULL
+  label_col = NULL,
+  auto_size = TRUE,
+  save_file_location = NULL,
+  save_file_dpi = 300,
+  width_per_aa = 0.1,
+  height_per_row = 0.18,
+  min_width = 4,
+  min_height = 3
 )
 }
 \arguments{
@@ -72,9 +79,38 @@ sequences to outline. Defaults to \code{NULL} (no labels).}
 
 \item{label_col}{Named list, or \code{NULL}. Optional colors for each label
 name in \code{label_seq}. Any labels not listed here use internal defaults.}
+
+\item{auto_size}{Logical. If \code{TRUE}, compute recommended figure width and
+height from visible x-span and stacked peptide rows. Defaults to \code{TRUE}.}
+
+\item{save_file_location}{Character(1), or \code{NULL}. If provided, saves the plot
+to this path via \code{ggplot2::ggsave()}. Useful in headless sessions where device
+resizing is not available. When provided, the function returns the plot
+invisibly. Defaults to \code{NULL}.}
+
+\item{save_file_dpi}{Numeric. DPI used by \code{ggplot2::ggsave()} when
+\code{save_file_location} is provided. Defaults to \code{300}.}
+
+\item{width_per_aa}{Numeric. Width contribution (inches) per visible amino acid
+position when \code{auto_size = TRUE}. Defaults to \code{0.1}.}
+
+\item{height_per_row}{Numeric. Height contribution (inches) per peptide stack
+row when \code{auto_size = TRUE}. Defaults to \code{0.18}.}
+
+\item{min_width}{Numeric. Minimum auto-computed width in inches.
+Defaults to \code{4}.}
+
+\item{min_height}{Numeric. Minimum auto-computed height in inches.
+Defaults to \code{3}.}
 }
 \value{
 A combined \code{ggplot} object with protein and peptide panels.
+When \code{auto_size = TRUE}, attributes
+\code{suggested_fig_width}, \code{suggested_fig_height}, and
+\code{suggested_fig_size} are attached. These values can be used directly in
+Quarto/Rmd chunk options (\code{fig-width}/\code{fig-height} in Quarto or
+\code{fig.width}/\code{fig.height} in knitr). If \code{save_file_location}
+is set, the same plot object is returned invisibly after saving.
 }
 \description{
 Visualize peptides mapped to a protein sequence
@@ -147,6 +183,33 @@ plot_pep_align(
   label_col    = list(highlight_1 = "red",
                      highlight_2 = "blue")
 )
+
+# 7) Auto-size in console and inspect computed dimensions
+# auto_size is default TRUE
+p <- plot_pep_align(
+  result,
+  protein_name = "P02662",
+  auto_size = TRUE
+)
+attr(p, "suggested_fig_size")
+
+# This can be used in Quarto/Rmd chunk options
+p <- plot_pep_align(result, protein_name = "P02662")
+# Quarto/Rmd chunk options:
+#| fig-width: !expr attr(p, "suggested_fig_width")
+#| fig-height: !expr attr(p, "suggested_fig_height")
+# knitr (Rmd) chunk header:
+# {r, fig.width=attr(p, "suggested_fig_width"),
+#     fig.height=attr(p, "suggested_fig_height")}
+
+# 8) Save with auto-computed dimensions (works in headless sessions)
+plot_pep_align(
+  result,
+  protein_name = "P02662",
+  auto_size = TRUE,
+  save_file_location = "pep_align_P02662.png"
+)
+
 }
 
 }

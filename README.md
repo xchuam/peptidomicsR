@@ -61,6 +61,7 @@ BiocManager::install("limma")
 - **Cleavage-site** intensity (N/C/both termini) —
   `plot_cleavage_site()`.
 - **GRAVY vs. intensity** scatter — `plot_gravy_vs_intensity()`.
+- **Peptide alignment** along a selected protein — `plot_pep_align()`.
 - **PCA** plot to quickly assess group separation —
   `plot_pcaPeptides()`.
 - **Volcano plot(s)** for differential tests (t.test or limma) —
@@ -138,7 +139,22 @@ plot_length_distribution(
 
 ![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
-### 4) Cleavage-site intensity (N and/or C termini)
+### 4) Peptide alignment along a protein
+
+``` r
+p_align <- plot_pep_align(
+  result,
+  protein_name  = "P02662",
+  filter_params = list(Digest.stage = "G120"),
+  x_interval    = 5,
+  x_range       = c(60, 85),
+  y_range       = c(0, 12)
+)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+### 5) Cleavage-site intensity (N and/or C termini)
 
 ``` r
 plot_cleavage_site(
@@ -152,7 +168,7 @@ plot_cleavage_site(
 )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ------------------------------------------------------------------------
 
@@ -168,10 +184,10 @@ Three files are required:
 
 Example:
 
-| Sequence        | Leading razor protein | Length | Start position | End position | Amino acid before | First amino acid | Last amino acid | Amino acid after | Intensity Sample1_1 | Intensity Sample1_2 | Intensity Sample2_1 |
-|-----------------|-----------------------|--------|----------------|--------------|-------------------|------------------|-----------------|------------------|---------------------|---------------------|---------------------|
-| AAGGPGAPADPGRPT | P81265                | 15     | 609            | 623          | D                 | A                | T               | G                | 40332000            | 51443000            | 39094000            |
-| AAIDEASKKLNAQ   | P15497                | 13     | 253            | 265          | L                 | A                | Q               | –                | 18167000            | 26893000            | 17524000            |
+| Sequence | Leading razor protein | Length | Start position | End position | Amino acid before | First amino acid | Last amino acid | Amino acid after | Intensity Sample1_1 | Intensity Sample1_2 | Intensity Sample2_1 |
+|----|----|----|----|----|----|----|----|----|----|----|----|
+| AAGGPGAPADPGRPT | P81265 | 15 | 609 | 623 | D | A | T | G | 40332000 | 51443000 | 39094000 |
+| AAIDEASKKLNAQ | P15497 | 13 | 253 | 265 | L | A | Q | – | 18167000 | 26893000 | 17524000 |
 
 ### 2) Intensity-column metadata (`intensity_columns_file`)
 

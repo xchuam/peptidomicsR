@@ -125,55 +125,20 @@ plot_length_distribution(
 
 ### 4) Peptide alignment along a protein
 
-Start with a minimal call (sequence is auto-looked-up if present):
-
-```{r}
-plot_pep_align(result, protein_name = "P02662")
-```
-
-If the sequence is missing in the mapping, supply it manually using the packaged
-example table:
-
-```{r}
-data(peptidomics_protein_mapping_example)
-alpha_seq <- peptidomics_protein_mapping_example[
-  peptidomics_protein_mapping_example[["Leading.razor.protein"]] == "P02662",
-  "Protein.seq"
-]
-
-plot_pep_align(
-  result,
-  protein_name = "P02662",
-  protein_seq  = alpha_seq
-)
-```
-
-Add grouping filters, replicate mode, and axis controls together:
-
-```{r}
-plot_pep_align(
+```{r }
+p_align <- plot_pep_align(
   result,
   protein_name  = "P02662",
-  protein_seq   = alpha_seq,
-  type          = "reps",
-  filter_params = list(Yogurt = "Y1"),
-  x_interval    = 20,
-  x_range       = c(0, 260),
+  filter_params = list(Digest.stage = "G120"),
+  x_interval    = 5,
+  x_range       = c(60, 85),
   y_range       = c(0, 12)
 )
 ```
-
-If your peptide table uses non-standard column names, override them explicitly:
-
-```{r}
-plot_pep_align(
-  result,
-  protein_name = "P02662",
-  protein_seq  = alpha_seq,
-  seq_col      = "Sequence",
-  start_col    = "Start.position",
-  end_col      = "End.position"
-)
+```{r, warning=FALSE, echo=FALSE}
+#| fig-width: !expr attr(p_align, "suggested_fig_width")
+#| fig-height: !expr attr(p_align, "suggested_fig_height")
+p_align
 ```
 
 ### 5) Cleavage-site intensity (N and/or C termini)
