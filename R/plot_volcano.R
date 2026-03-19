@@ -5,6 +5,8 @@
 #' Each plot shows \code{log2FC} on the x-axis and \eqn{-log10(adjusted~p)} on the y-axis,
 #' optionally with a log-scaled y-axis. Points are colored
 #' by significance using the \code{sig} column produced by \code{ttestPeptides()}.
+#' Each plot title is set to the corresponding comparison name in \code{ttest_result}
+#' (e.g., \code{"A_vs_B"}) to make multiple plots easy to distinguish.
 #' Threshold lines are drawn depending on \code{test_method}:
 #' \itemize{
 #'   \item \code{"treat"}: a horizontal line at \eqn{-log10(\alpha)} (log2 fold-change threshold is baked into TREAT).
@@ -73,17 +75,17 @@
 #' \dontrun{
 #' # Prepare data
 #' result <- processPeptides(
-#'   peptides_file          = "../Data/peptides.txt",
-#'   intensity_columns_file = "../Data/Intensity_columns.csv",
-#'   protein_mapping_file   = "../Data/protein_mapping.csv"
+#'   peptides_file          = "data/Yogurtexample_QR188-205.csv",
+#'   intensity_columns_file = "data/Intensity_columns.csv",
+#'   protein_mapping_file   = "data/protein_mapping.csv"
 #' )
 #' # suppose you ran ttestPeptides() like this with default test_method = "treat",
 #'   lfc_thresh = 1 and alpha = 0.05:
 #' ttest.1 <- ttestPeptides(
 #'   result,
 #'   comparisons = list(
-#'     c("C40_G_N", "C40_I_N"),
-#'     c("C40_G_N", "C80_I_N")
+#'     c("G120_Y1", "I120_Y1"),
+#'     c("G120_Y1", "G120_Y2")
 #'   )
 #' )
 #'
@@ -92,21 +94,21 @@
 #'   ttest_result = ttest.1,
 #'   comparisons  = c(1, 2),                 # or list(1L, 2L)
 #' )
-#' v1$C40_G_N_vs_C80_I_N   # show one
+#' v1$G120_Y1_vs_G120_Y2   # show one
 #'
 #' # 2) Plot by name pairs and try different colors
 #' v2 <- plot_volcano(
 #'  ttest_result = ttest.1,
 #'  comparisons = list(
-#'    c("C40_G_N", "C40_I_N"),
-#'    c("C40_G_N", "C80_I_N")
+#'    c("G120_Y1", "I120_Y1"),
+#'    c("G120_Y1", "G120_Y2")
 #'  ),
 #'  fill_values  = c(no = "grey80", yes = "#E41A1C")
 #' )
-#' v2$C40_G_N_vs_C40_I_N
+#' v2$G120_Y1_vs_I120_Y1
 #'
 #' # 3) Label a few sequences and enable y-axis log scaling
-#' some_peps <- c("AAEVIREA", "AAEVIREALQGITDPLFK")
+#' some_peps <- head(ttest.1[[1]]$Sequence, 2)
 #' v3 <- plot_volcano(
 #'   ttest_result = ttest.1,
 #'   comparisons  = 1,
@@ -114,11 +116,13 @@
 #'   label_col    = "black",
 #'   y_log_scale  = TRUE
 #' )
-#' v3$C40_G_N_vs_C40_I_N
+#' v3$G120_Y1_vs_I120_Y1
 #'
 #' # 4) Highlight selected peptides with colored rings, set highlight size = 2 and stroke = 2
-#' hl <- list(black = c("AAEVIREA"),
-#'            "#377EB8" = c("AAEVIREALQGITDPLFK"))
+#' hl <- list(
+#'   black = head(ttest.1[[1]]$Sequence, 1),
+#'   "#377EB8" = head(ttest.1[[1]]$Sequence, 2)[2]
+#' )
 #' v4 <- plot_volcano(
 #' ttest_result   = ttest.1,
 #'   comparisons    = 1,
@@ -127,7 +131,7 @@
 #'   highlight_size = 2,
 #'   highlight_stroke = 2
 #' )
-#' v4$C40_G_N_vs_C40_I_N
+#' v4$G120_Y1_vs_I120_Y1
 #'
 #' # 5) suppose you ran ttestPeptides() not with the default settings:
 #' my_lfc_thresh <- 2
@@ -135,8 +139,8 @@
 #' ttest.2 <- ttestPeptides(
 #'   result,
 #'   comparisons = list(
-#'     c("C40_G_N", "C40_I_N"),
-#'     c("C40_G_N", "C80_I_N")
+#'     c("G120_Y1", "I120_Y1"),
+#'     c("G120_Y1", "G120_Y2")
 #'   ),
 #'   test_method  = "plain",
 #'   lfc_thresh = my_lfc_thresh,
@@ -149,7 +153,7 @@
 #'   lfc_thresh     = my_lfc_thresh,
 #'   alpha          = my_alpha
 #' )
-#' v5$C40_G_N_vs_C40_I_N
+#' v5$G120_Y1_vs_I120_Y1
 #'
 #' }
 #'
@@ -284,6 +288,7 @@ plot_volcano <- function(
       scale_fill_manual(values = fill_values, name = "Significant") +
       scale_color_manual(values = fill_values, name = "Significant") +
       xlab("log2 fold change") + ylab(y_lab) +
+      ggtitle(nm) +
       y_scale +
       theme_pubr()+
       theme(legend.position = "bottom")
@@ -347,4 +352,3 @@ plot_volcano <- function(
 
   res_list
 }
-

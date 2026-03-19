@@ -2,12 +2,12 @@
 % Please edit documentation in R/plot_length_distribution.R
 \name{plot_length_distribution}
 \alias{plot_length_distribution}
-\title{Plot peptide length distribution by intensity or count}
+\title{Plot peptide length distribution by intensity or peptide type number}
 \usage{
 plot_length_distribution(
   result,
   type = c("mean", "reps"),
-  metric = c("intensity", "count"),
+  metric = c("intensity", "type_num"),
   color_by = "Protein.group",
   filter_params = NULL,
   facet_rows = NULL,
@@ -21,32 +21,32 @@ plot_length_distribution(
 \itemize{
 \item \code{dt.peptides.int}: mean intensities,
 \item \code{dt.peptides.int.reps}: replicate-level intensities,
-\item \code{dt.peptides.count}: mean counts,
-\item \code{dt.peptides.count.reps}: replicate-level counts,
+\item \code{dt.peptides.typenum}: mean peptide type numbers,
+\item \code{dt.peptides.typenum.reps}: replicate-level peptide type numbers,
 \item \code{grp_cols}: character vector of grouping column names.
 }}
 
 \item{type}{Character. Which table to plot: \code{"reps"} (replicate‐level) or \code{"mean"} (group‐mean). Default: \code{"mean"}.}
 
 \item{metric}{Character. Which metric to plot: \code{"intensity"} for summed intensities,
-or \code{"count"} for peptide counts. Default: \code{"intensity"}.}
+or \code{"type_num"} for numbers of unique peptide types. Default: \code{"intensity"}.}
 
 \item{color_by}{Character. Fill aesthetic: \code{"Protein.group"}, \code{"Protein.name"}, or \code{"none"}.
 Default: \code{"Protein.group"}. Ignored when \code{plot_mode = "density"}, which uses sample-wise colors.}
 
 \item{filter_params}{Named list, or \code{NULL}.  Each element’s name is a grouping column,
 and its value is a vector of values to include.  Multiple names impose an AND filter.
-For example: \code{list(Lipid = c("N","S"), Digest.stage = "G")}
+For example: \code{list(Yogurt = c("Y1","Y2"), Digest.stage = "G120")}
 Default: \code{NULL} (no filtering).}
 
 \item{facet_rows}{Character(1) or \code{NULL}.  Name of grouping column(s) for row facets.
 You can combine multiple variables with a plus: e.g.
-\code{"Casein.ratio+Digest.stage"}.  Default: \code{NULL}.}
+\code{"Yogurt+Digest.stage"}.  Default: \code{NULL}.}
 
 \item{facet_cols}{Character(1) or \code{NULL}.  Name of grouping column(s) for column facets.
 Defaults to \code{"Replicate"} if \code{type = "reps"} and not explicitly set.
 You can combine multiple variables with a plus, e.g.
-\code{"Lipid+Replicate"}.  Default: \code{NULL}.}
+\code{"Yogurt+Replicate"}.  Default: \code{NULL}.}
 
 \item{scientific_10_y}{Logical.  If \code{TRUE}, use scientific notation for y-axis.
 Default: \code{TRUE}. Ignored when \code{plot_mode = "density"}.}
@@ -61,7 +61,7 @@ A \code{ggplot} object.
 }
 \description{
 Summarizes and visualizes the distribution of peptide lengths,
-either by total intensity or by peptide counts, stacking by protein group or name,
+either by total intensity or by numbers of unique peptide types, stacking by protein group or name,
 or overlaying sample-level density curves, with optional filtering,
 faceting, and scientific notation on the y-axis.
 }
@@ -72,24 +72,24 @@ result <- processPeptides(
   intensity_columns_file = "data/Intensity_columns.csv",
   protein_mapping_file   = "data/protein_mapping.csv"
 )
-# Plot mean Intensity vs. length, filter Lipid == "N", facet by Casein.ratio and Digest.stage
+# Plot mean intensity vs. length, filter Yogurt == "Y1", facet by Digest.stage and Yogurt
 p1 <- plot_length_distribution(
   result,
   metric           = "intensity",
-  filter_params    = list(Lipid = "N"),
-  facet_rows       = "Casein.ratio",
-  facet_cols       = "Digest.stage"
+  filter_params    = list(Yogurt = "Y1"),
+  facet_rows       = "Digest.stage",
+  facet_cols       = "Yogurt"
 )
-# Plot replicate‐level count vs. length,
+# Plot replicate-level peptide type number vs. length,
 colored by protein name, not scientific y-axis,
-facet row by Casein.ratio+Digest.stage, col by Lipid+Replicate
+facet row by Digest.stage, col by Yogurt+Replicate
 p2 <- plot_length_distribution(
   result,
   type             = "reps",
-  metric           = "count",
+  metric           = "type_num",
   color_by         = "Protein.name",
-  facet_rows       = "Casein.ratio+Digest.stage",
-  facet_cols       = "Lipid+Replicate",
+  facet_rows       = "Digest.stage",
+  facet_cols       = "Yogurt+Replicate",
   scientific_10_y  = FALSE
 )
 
@@ -97,7 +97,7 @@ p2 <- plot_length_distribution(
 p3 <- plot_length_distribution(
   result,
   type       = "reps",
-  metric     = "count",
+  metric     = "type_num",
   plot_mode  = "density",
   facet_rows = "Digest.stage"
 )

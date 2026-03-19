@@ -1,7 +1,7 @@
 Package: peptidomicsR
 Type: Package
 Title: Tools for Peptidomics and Protein Digestion Analysis
-Version: 1.1.0.9000
+Version: 1.1.1.9000
 Authors@R: 
     c(
       person("Xuchuan", "Ma", email = "xuchuan.ma@gmail.com", role = c("aut", "cre")),
@@ -23,7 +23,8 @@ Imports:
     cowplot,
     gridExtra,
     ggseqlogo,
-    limma
+    limma,
+    patchwork
 Suggests:
     testthat (>= 3.0.0),
     knitr,

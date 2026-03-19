@@ -14,6 +14,8 @@ utils::globalVariables(
     "Leading.razor.protein",
     "Length",
     "Mean.Intensity",
+    "Mean.Peptides.type.number",
+    "Peptides.type.number",
     "Protein.group",
     "Protein.name",
     "Replicate",

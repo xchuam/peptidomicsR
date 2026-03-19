@@ -3,11 +3,11 @@
 #' @description
 #' Subsets the full `processPeptides()` result to only those peptides you’re interested in,
 #' either by exact sequence, by regex pattern, or by any combination of your grouping variables.
-#' Returns the same list-of-tables structure so it will work with `plot_int()`, `plot_count()`, etc.
+#' Returns the same list-of-tables structure so it will work with `plot_int()`, `plot_type_num()`, etc.
 #'
 #' @param result List. The output of \code{processPeptides()} (must contain at least
 #'   \code{dt.peptides}, \code{dt.peptides.int}, \code{dt.peptides.int.reps},
-#'   \code{dt.peptides.count}, \code{dt.peptides.count.reps}, \code{grp_cols},
+#'   \code{dt.peptides.typenum}, \code{dt.peptides.typenum.reps}, \code{grp_cols},
 #'   \code{dt.int_col}, and \code{peptides_select_col.basic}).
 #' @param seqs Character vector, or \code{NULL}.  If provided, only exact-matching \code{Sequence}
 #'   values are kept.
@@ -20,16 +20,16 @@
 #'
 #' @return A list with the identical named elements as the original \code{result}, but
 #'   each of the five data.tables (\code{dt.peptides}, \code{dt.peptides.int},
-#'   \code{dt.peptides.int.reps}, \code{dt.peptides.count}, \code{dt.peptides.count.reps}, and corresponding metadata \code{dt.int_col})
+#'   \code{dt.peptides.int.reps}, \code{dt.peptides.typenum}, \code{dt.peptides.typenum.reps}, and corresponding metadata \code{dt.int_col})
 #'   is filtered to only the selected sequences/groups.  The rest part
 #'   (\code{grp_cols}, \code{peptides_select_col.basic}) is passed through untouched.
 #'
 #' @examples
 #' \dontrun{
 #' result <- processPeptides(
-#'   peptides_file          = "../Data/peptides.txt",
-#'   intensity_columns_file = "../Data/Intensity_columns.csv",
-#'   protein_mapping_file   = "../Data/protein_mapping.csv"
+#'   peptides_file          = "data/Yogurtexample_QR188-205.csv",
+#'   intensity_columns_file = "data/Intensity_columns.csv",
+#'   protein_mapping_file   = "data/protein_mapping.csv"
 #' )
 #'
 #' # 1) exact sequence list
@@ -47,13 +47,13 @@
 #' # 3) combine with grouping filters
 #' sub_result3 <- filterPeptides(
 #'   result        = result,
-#'   seq_pattern   = "PLFK$",
-#'   filter_params = list(Lipid = "N", Digest.stage = "G")
+#'   seq_pattern   = "DQAM",
+#'   filter_params = list(Yogurt = "Y1", Digest.stage = "G120")
 #' )
 #'
 #' # Then you can do e.g.
-#' plot_int(sub3)
-#' plot_count(sub3, type = "reps")
+#' plot_int(sub_result3)
+#' plot_type_num(sub_result3, type = "reps")
 #' }
 #'
 #' @import data.table
@@ -92,13 +92,13 @@ filterPeptides <- function(result,
   dt_mean    <- dt_mean[Sequence %in% keep_seqs]
   dt_mean_r  <- dt_mean_r[Sequence %in% keep_seqs]
 
-  # compute count of peptides per Length, Protein.name, Protein.group, grp_cols, annd/or Replicate
-  dt_count <- dt_mean[
-    , .(Mean.Count = .N)
+  # compute peptide type numbers per Length, Protein.name, Protein.group, grp_cols, and/or Replicate
+  dt_typenum <- dt_mean[
+    , .(Mean.Peptides.type.number = .N)
     , by = c("Length", "Protein.name", "Protein.group", grp_cols)
   ]
-  dt_count_r <- dt_mean_r[
-    , .(Count = .N)
+  dt_typenum_r <- dt_mean_r[
+    , .(Peptides.type.number = .N)
     , by = c("Length", "Protein.name", "Protein.group", "Replicate", grp_cols)
   ]
 
@@ -111,8 +111,8 @@ filterPeptides <- function(result,
       #wild table filter
       dt_mean    <- dt_mean[get(col) %in% vals]
       dt_mean_r  <- dt_mean_r[get(col) %in% vals]
-      dt_count   <- dt_count[get(col) %in% vals]
-      dt_count_r <- dt_count_r[get(col) %in% vals]
+      dt_typenum <- dt_typenum[get(col) %in% vals]
+      dt_typenum_r <- dt_typenum_r[get(col) %in% vals]
 
       #intensity‐column filter for long table
       dt_int_col <- dt_int_col[get(col) %in% vals]
@@ -129,8 +129,8 @@ filterPeptides <- function(result,
     dt.peptides              = dt_p,
     dt.peptides.int          = dt_mean,
     dt.peptides.int.reps     = dt_mean_r,
-    dt.peptides.count        = dt_count,
-    dt.peptides.count.reps   = dt_count_r,
+    dt.peptides.typenum      = dt_typenum,
+    dt.peptides.typenum.reps = dt_typenum_r,
     dt.int_col               = dt_int_col,
     grp_cols                 = grp_cols,
     peptides_select_col.basic= result$peptides_select_col.basic

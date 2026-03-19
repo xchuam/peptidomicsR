@@ -23,8 +23,8 @@ A named list with the following elements:
 \item \code{dt.peptides.int}: Data.table with \code{Mean.Intensity} per group across replicates.
 \item \code{dt.peptides.int.reps}: Data.table with \code{Intensity} per replicate per group.
 \item \code{dt.peptides.int.ttest}: Data.table for potential t.test analysis. Zero values are not dropped.
-\item \code{dt.peptides.count}: Counts of peptides per group in \code{dt.peptides.int}.
-\item \code{dt.peptides.count.reps}: Counts of peptides per replicate per group in \code{dt.peptides.int.reps}.
+\item \code{dt.peptides.typenum}: Numbers of unique peptide types per group in \code{dt.peptides.int}.
+\item \code{dt.peptides.typenum.reps}: Numbers of unique peptide types per replicate per group in \code{dt.peptides.int.reps}.
 \item \code{dt.int_col}: The intensity column metadata read from \code{intensity_columns_file}.
 \item \code{grp_cols}: Character vector of grouping column names used.
 \item \code{peptides_select_col.basic}: Character vector of basic peptide columns selected initially.
@@ -33,23 +33,23 @@ A named list with the following elements:
 \description{
 Read peptide information from MaxQuant output file, intensity column meatadata, and protein mapping;
 filters out contaminants; computes per-replicate and per-group mean intensities;
-and counts peptides per replicate and per group .
+and computes peptide type numbers per replicate and per group.
 Map protein name and protein group, calculate GRAVY score.
 }
 \examples{
 \dontrun{
 # 1) Reading from files
 result <- processPeptides(
-  peptides_file          = "../Data/peptides.txt",
-  intensity_columns_file = "../Data/Intensity_columns.csv",
-  protein_mapping_file   = "../Data/protein_mapping.csv"
+  peptides_file          = "data/Yogurtexample_QR188-205.csv",
+  intensity_columns_file = "data/Intensity_columns.csv",
+  protein_mapping_file   = "data/protein_mapping.csv"
 )
 
 # 2) Reading from in-memory files
 library(data.table)
-dt_pep <- fread("../Data/peptides.txt", integer64 = "double")
-dt_lfq <- fread("../Data/Intensity_columns.csv")
-dt_map <- fread("../Data/protein_mapping.csv")
+dt_pep <- fread("data/Yogurtexample_QR188-205.csv", integer64 = "double")
+dt_lfq <- fread("data/Intensity_columns.csv")
+dt_map <- fread("data/protein_mapping.csv")
 result_2 <- processPeptides(
   peptides_file          = dt_pep,
   intensity_columns_file = dt_lfq,

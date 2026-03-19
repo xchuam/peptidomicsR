@@ -4,7 +4,7 @@
 #' Visualize amino-acid preferences at peptide cleavage sites using sequence logos,
 #' aggregated from the \code{processPeptides()} result. You can plot the N- or
 #' C-terminal residue distribution (or both), measure either total intensity or
-#' peptide counts, average replicates or show each replicate separately, and
+#' peptide type numbers, average replicates or show each replicate separately, and
 #' optionally drop grouping columns that are constant after filtering so the
 #' x-axis only reflects variables that truly vary.
 #'
@@ -16,15 +16,15 @@
 #'     \item \code{grp_cols}: character vector of grouping columns to define sample groups.
 #'   }
 #' @param terminal Character. Which terminal(s) to plot: one of \code{"both"}, \code{"N"}, or \code{"C"}. Default \code{"both"}.
-#' @param measure Character. What to aggregate: \code{"intensity"} (sum of intensities per replicate) or \code{"count"}
-#'   (number of peptides with non-zero intensity per replicate). Default \code{"intensity"}.
+#' @param measure Character. What to aggregate: \code{"intensity"} (sum of intensities per replicate) or \code{"type_num"}
+#'   (number of unique peptide types with non-zero intensity per replicate). Default \code{"intensity"}.
 #' @param replicate_mode Character. How to handle replicates:
 #'   \code{"mean"} (average replicate values within each group) or
 #'   \code{"reps"} (treat each replicate as its own x-axis level).
 #'   Default: \code{"mean"}.
 #' @param filter_params Named list, or \code{NULL}.  Each element’s name is a grouping column,
 #'   and its value is a vector of values to include.  Multiple names impose an AND filter.
-#'   For example: \code{list(Lipid = c("N","S"), Digest.stage = "G")}
+#'   For example: \code{list(Yogurt = c("Y1","Y2"), Digest.stage = "G120")}
 #'   Default: \code{NULL} (no filtering).
 #' @param scientific_10_y Logical.  If \code{TRUE}, use scientific notation for y-axis.
 #'   Default: \code{TRUE}.
@@ -40,9 +40,9 @@
 #' \dontrun{
 #' # Prepare data
 #' result <- processPeptides(
-#'   peptides_file          = "../Data/peptides.txt",
-#'   intensity_columns_file = "../Data/Intensity_columns.csv",
-#'   protein_mapping_file   = "../Data/protein_mapping.csv"
+#'   peptides_file          = "data/Yogurtexample_QR188-205.csv",
+#'   intensity_columns_file = "data/Intensity_columns.csv",
+#'   protein_mapping_file   = "data/protein_mapping.csv"
 #' )
 #'
 #' # 1) N-terminal, mean over replicates, intensity
@@ -57,7 +57,7 @@
 #' p2 <- plot_cleavage_site(
 #'   result,
 #'   terminal       = "C",
-#'   measure        = "count",
+#'   measure        = "type_num",
 #'   replicate_mode = "reps"
 #' )
 #'
@@ -67,7 +67,7 @@
 #'   terminal            = "both",
 #'   measure             = "intensity",
 #'   replicate_mode      = "mean",
-#'   filter_params       = list(Lipid = "N", Digest.stage = "G"),
+#'   filter_params       = list(Yogurt = "Y1"),
 #'   drop_constant_groups = TRUE
 #' )
 #'
@@ -77,7 +77,7 @@
 #'   terminal              = "N",
 #'   measure               = "intensity",
 #'   replicate_mode        = "mean",
-#'   filter_params         = list(Lipid = "N", Digest.stage = "G"),
+#'   filter_params         = list(Yogurt = "Y1", Digest.stage = "G120"),
 #'   drop_constant_groups  = FALSE
 #' )
 #' }
@@ -90,7 +90,7 @@
 #' @export
 plot_cleavage_site <- function(result,
                                terminal = c("both","N","C"),
-                               measure = c("intensity","count"),
+                               measure = c("intensity","type_num"),
                                replicate_mode = c("mean","reps"),
                                filter_params = NULL,
                                scientific_10_y   = TRUE,
@@ -130,7 +130,7 @@ plot_cleavage_site <- function(result,
     # per-replicate aggregate by AA and group columns
     if (measure == "intensity") {
       dt_rep <- dt[, .(value = sum(Intensity, na.rm = TRUE)), by = c(aa_col, unique(active_grp_cols, "Replicate"))]
-    } else { # count
+    } else { # type number
       dt_rep <- dt[Intensity > 0 & !is.na(Intensity), .N, by = c(aa_col, unique(active_grp_cols, "Replicate"))]
       setnames(dt_rep, "N", "value")
     }
@@ -161,7 +161,7 @@ plot_cleavage_site <- function(result,
       ggseqlogo(mat, method = 'custom', seq_type = 'aa') +
       scale_x_continuous(breaks = seq_len(ncol(mat)), labels = colnames(mat)) +
       labs(x = "Sample group", y = paste0(side_label, " terminal ",
-                                          if (measure == "intensity") "Intensity" else "Count")) +
+                                          if (measure == "intensity") "Intensity" else "Peptide type number")) +
       theme_classic() +
       theme(axis.line = element_line(linewidth = 0.2, colour = "gray"),
             axis.text.x = element_text(angle = 45, hjust = 1))
@@ -217,4 +217,3 @@ plot_cleavage_site <- function(result,
 
   }
 }
-
