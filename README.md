@@ -5,7 +5,7 @@ peptidomicsR
 
 `peptidomicsR` provides functions to process, filter, analyze, and
 visualize peptidomics data, especially from MaxQuant protein digestion
-studies. This README introduces the package through four parts:
+studies. This README introduces the current package through four parts:
 
 ✨ **Functions**
 
@@ -13,7 +13,7 @@ studies. This README introduces the package through four parts:
 
 📊 **Example plots**
 
-🛠️ **Required input file**
+🛠️ **Required input files**
 
 ------------------------------------------------------------------------
 
@@ -37,14 +37,13 @@ BiocManager::install("limma")
 - Import MaxQuant *peptides.txt* file, intensity-column metadata, and
   protein mapping.
 - Automatically remove contaminants and reverse sequences.
-- Compute replicate- and group-level mean intensities and peptide
-  counts.
+- Compute replicate- and group-level mean intensities and peptide type
+  numbers.
 - Map parent protein name and protein group for each peptide.
 - Calculate peptide GRAVY scores.
 
 ### 2) Filtering & statistics
 
-- PCA analysis to pre-check group separation — `pcaPeptides()`.
 - Subset by sequence, regex pattern, or grouping variables —
   `filterPeptides()`.
 - Compare specific groups using statistical analysis to identify
@@ -54,18 +53,17 @@ BiocManager::install("limma")
 
 - Stacked bar plots of **peptide intensities** by parent proteins —
   `plot_int()`.
-- Stacked bar plots of **peptide counts** by parent proteins —
-  `plot_count()`.
-- **Peptide-length distribution** (by intensity or counts) —
-  `plot_length_distribution()`.
-- **Cleavage-site** intensity (N/C/both termini) —
+- Stacked bar plots of **numbers of unique peptide types** by parent
+  proteins — `plot_type_num()`.
+- **Peptide-length distribution** as stacked bars or weighted density
+  curves — `plot_length_distribution()`.
+- **Cleavage-site** sequence logos for N, C, or both termini —
   `plot_cleavage_site()`.
-- **GRAVY vs. intensity** scatter — `plot_gravy_vs_intensity()`.
-- **Peptide alignment** along a selected protein — `plot_pep_align()`.
-- **PCA** plot to quickly assess group separation —
-  `plot_pcaPeptides()`.
-- **Volcano plot(s)** for differential tests (t.test or limma) —
-  `plot_volcano()`.
+- **GRAVY vs. intensity** scatter or density plots —
+  `plot_gravy_vs_intensity()`.
+- **Peptide alignment** along a selected protein, with optional
+  auto-sizing and sequence lookup — `plot_pep_align()`.
+- **Volcano plot(s)** for `ttestPeptides()` results — `plot_volcano()`.
 
 ------------------------------------------------------------------------
 
@@ -74,7 +72,7 @@ BiocManager::install("limma")
 1.  Import and process data → `processPeptides()`
 2.  Explore distributions:
     - Intensities → `plot_int()`
-    - Counts → `plot_count()`
+    - Peptide types → `plot_type_num()`
     - Length distribution → `plot_length_distribution()`
     - Cleavage sites → `plot_cleavage_site()`
     - Hydrophobicity trends → `plot_gravy_vs_intensity()`
@@ -86,9 +84,9 @@ BiocManager::install("limma")
 
 ## 📊 Example plots
 
-> This is only a small sample of the functions included in the
-> package!  
-> For a complete list, please check the package vignette.
+> This is only a small sample of the exported functions included in the
+> package.  
+> For more information, please check the package vignette or help files.
 
 ### 1) Import and process data
 
@@ -96,9 +94,9 @@ BiocManager::install("limma")
 library(peptidomicsR)
 
 result <- processPeptides(
-  peptides_file          = "Data/Yogurtexample_QR188-205.csv",
-  intensity_columns_file = "Data/Intensity_columns.csv",
-  protein_mapping_file   = "Data/protein_mapping.csv"
+  peptides_file          = "data/Yogurtexample_QR188-205.csv",
+  intensity_columns_file = "data/Intensity_columns.csv",
+  protein_mapping_file   = "data/protein_mapping.csv"
 )
 ```
 
@@ -131,7 +129,7 @@ plot_length_distribution(
 ``` r
 plot_length_distribution(
   result,
-  metric = "count",
+  metric = "type_num",
   filter_params = list(Yogurt = "Y1"),
   plot_mode = "density"
 )
@@ -160,7 +158,7 @@ p_align <- plot_pep_align(
 plot_cleavage_site(
   result,
   terminal              = "both",       # "N", "C", or "both"
-  measure               = "intensity",  # "intensity" or "count"
+  measure               = "intensity",  # "intensity" or "type_num"
   replicate_mode        = "mean",       # "mean" or "reps"
   filter_params         = list(Digest.stage = "G120"),
   scientific_10_y       = TRUE,
@@ -184,10 +182,10 @@ Three files are required:
 
 Example:
 
-| Sequence        | Leading razor protein | Length | Start position | End position | Amino acid before | First amino acid | Last amino acid | Amino acid after | Intensity Sample1_1 | Intensity Sample1_2 | Intensity Sample2_1 |
-|-----------------|-----------------------|--------|----------------|--------------|-------------------|------------------|-----------------|------------------|---------------------|---------------------|---------------------|
-| AAGGPGAPADPGRPT | P81265                | 15     | 609            | 623          | D                 | A                | T               | G                | 40332000            | 51443000            | 39094000            |
-| AAIDEASKKLNAQ   | P15497                | 13     | 253            | 265          | L                 | A                | Q               | –                | 18167000            | 26893000            | 17524000            |
+| Sequence | Leading razor protein | Length | Start position | End position | Amino acid before | First amino acid | Last amino acid | Amino acid after | Intensity Sample1_1 | Intensity Sample1_2 | Intensity Sample2_1 |
+|----|----|----|----|----|----|----|----|----|----|----|----|
+| AAGGPGAPADPGRPT | P81265 | 15 | 609 | 623 | D | A | T | G | 40332000 | 51443000 | 39094000 |
+| AAIDEASKKLNAQ | P15497 | 13 | 253 | 265 | L | A | Q | – | 18167000 | 26893000 | 17524000 |
 
 ### 2) Intensity-column metadata (`intensity_columns_file`)
 

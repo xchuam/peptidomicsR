@@ -2,12 +2,12 @@
 % Please edit documentation in R/plot_length_distribution.R
 \name{plot_length_distribution}
 \alias{plot_length_distribution}
-\title{Plot peptide length distribution by intensity or count}
+\title{Plot peptide length distribution by intensity or peptide type number}
 \usage{
 plot_length_distribution(
   result,
   type = c("mean", "reps"),
-  metric = c("intensity", "count"),
+  metric = c("intensity", "type_num"),
   color_by = "Protein.group",
   filter_params = NULL,
   facet_rows = NULL,
@@ -21,15 +21,15 @@ plot_length_distribution(
 \itemize{
 \item \code{dt.peptides.int}: mean intensities,
 \item \code{dt.peptides.int.reps}: replicate-level intensities,
-\item \code{dt.peptides.count}: mean counts,
-\item \code{dt.peptides.count.reps}: replicate-level counts,
+\item \code{dt.peptides.typenum}: mean peptide type numbers,
+\item \code{dt.peptides.typenum.reps}: replicate-level peptide type numbers,
 \item \code{grp_cols}: character vector of grouping column names.
 }}
 
 \item{type}{Character. Which table to plot: \code{"reps"} (replicate‐level) or \code{"mean"} (group‐mean). Default: \code{"mean"}.}
 
 \item{metric}{Character. Which metric to plot: \code{"intensity"} for summed intensities,
-or \code{"count"} for peptide counts. Default: \code{"intensity"}.}
+or \code{"type_num"} for numbers of unique peptide types. Default: \code{"intensity"}.}
 
 \item{color_by}{Character. Fill aesthetic: \code{"Protein.group"}, \code{"Protein.name"}, or \code{"none"}.
 Default: \code{"Protein.group"}. Ignored when \code{plot_mode = "density"}, which uses sample-wise colors.}
@@ -61,7 +61,7 @@ A \code{ggplot} object.
 }
 \description{
 Summarizes and visualizes the distribution of peptide lengths,
-either by total intensity or by peptide counts, stacking by protein group or name,
+either by total intensity or by numbers of unique peptide types, stacking by protein group or name,
 or overlaying sample-level density curves, with optional filtering,
 faceting, and scientific notation on the y-axis.
 }
@@ -80,13 +80,13 @@ p1 <- plot_length_distribution(
   facet_rows       = "Digest.stage",
   facet_cols       = "Yogurt"
 )
-# Plot replicate‐level count vs. length,
+# Plot replicate-level peptide type number vs. length,
 colored by protein name, not scientific y-axis,
 facet row by Digest.stage, col by Yogurt+Replicate
 p2 <- plot_length_distribution(
   result,
   type             = "reps",
-  metric           = "count",
+  metric           = "type_num",
   color_by         = "Protein.name",
   facet_rows       = "Digest.stage",
   facet_cols       = "Yogurt+Replicate",
@@ -97,7 +97,7 @@ p2 <- plot_length_distribution(
 p3 <- plot_length_distribution(
   result,
   type       = "reps",
-  metric     = "count",
+  metric     = "type_num",
   plot_mode  = "density",
   facet_rows = "Digest.stage"
 )

@@ -1,8 +1,8 @@
-#' Plot peptide length distribution by intensity or count
+#' Plot peptide length distribution by intensity or peptide type number
 #'
 #' @description
 #' Summarizes and visualizes the distribution of peptide lengths,
-#' either by total intensity or by peptide counts, stacking by protein group or name,
+#' either by total intensity or by numbers of unique peptide types, stacking by protein group or name,
 #' or overlaying sample-level density curves, with optional filtering,
 #' faceting, and scientific notation on the y-axis.
 #'
@@ -10,13 +10,13 @@
 #'   \itemize{
 #'     \item \code{dt.peptides.int}: mean intensities,
 #'     \item \code{dt.peptides.int.reps}: replicate-level intensities,
-#'     \item \code{dt.peptides.count}: mean counts,
-#'     \item \code{dt.peptides.count.reps}: replicate-level counts,
+#'     \item \code{dt.peptides.typenum}: mean peptide type numbers,
+#'     \item \code{dt.peptides.typenum.reps}: replicate-level peptide type numbers,
 #'     \item \code{grp_cols}: character vector of grouping column names.
 #'   }
 #' @param type Character. Which table to plot: \code{"reps"} (replicate‐level) or \code{"mean"} (group‐mean). Default: \code{"mean"}.
 #' @param metric Character. Which metric to plot: \code{"intensity"} for summed intensities,
-#'   or \code{"count"} for peptide counts. Default: \code{"intensity"}.
+#'   or \code{"type_num"} for numbers of unique peptide types. Default: \code{"intensity"}.
 #' @param color_by Character. Fill aesthetic: \code{"Protein.group"}, \code{"Protein.name"}, or \code{"none"}.
 #'   Default: \code{"Protein.group"}. Ignored when \code{plot_mode = "density"}, which uses sample-wise colors.
 #' @param filter_params Named list, or \code{NULL}.  Each element’s name is a grouping column,
@@ -54,13 +54,13 @@
 #'   facet_rows       = "Digest.stage",
 #'   facet_cols       = "Yogurt"
 #' )
-#' # Plot replicate‐level count vs. length,
+#' # Plot replicate-level peptide type number vs. length,
 #' colored by protein name, not scientific y-axis,
 #' facet row by Digest.stage, col by Yogurt+Replicate
 #' p2 <- plot_length_distribution(
 #'   result,
 #'   type             = "reps",
-#'   metric           = "count",
+#'   metric           = "type_num",
 #'   color_by         = "Protein.name",
 #'   facet_rows       = "Digest.stage",
 #'   facet_cols       = "Yogurt+Replicate",
@@ -71,7 +71,7 @@
 #' p3 <- plot_length_distribution(
 #'   result,
 #'   type       = "reps",
-#'   metric     = "count",
+#'   metric     = "type_num",
 #'   plot_mode  = "density",
 #'   facet_rows = "Digest.stage"
 #' )
@@ -84,7 +84,7 @@
 #' @export
 plot_length_distribution <- function(result,
                                      type             = c("mean", "reps"),
-                                     metric           = c("intensity", "count"),
+                                     metric           = c("intensity", "type_num"),
                                      color_by         = "Protein.group",
                                      filter_params    = NULL,
                                      facet_rows       = NULL,
@@ -102,16 +102,16 @@ plot_length_distribution <- function(result,
       dt  <- copy(result$dt.peptides.int)
       y_var <- "Mean.Intensity"
     } else {
-      dt  <- copy(result$dt.peptides.count)
-      y_var <- "Mean.Count"
+      dt  <- copy(result$dt.peptides.typenum)
+      y_var <- "Mean.Peptides.type.number"
     }
   } else {
     if (metric == "intensity") {
       dt  <- copy(result$dt.peptides.int.reps)
       y_var <- "Intensity"
     } else {
-      dt  <- copy(result$dt.peptides.count.reps)
-      y_var <- "Count"
+      dt  <- copy(result$dt.peptides.typenum.reps)
+      y_var <- "Peptides.type.number"
     }
   }
   grp_cols <- result$grp_cols

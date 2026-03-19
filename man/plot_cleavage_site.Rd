@@ -7,7 +7,7 @@
 plot_cleavage_site(
   result,
   terminal = c("both", "N", "C"),
-  measure = c("intensity", "count"),
+  measure = c("intensity", "type_num"),
   replicate_mode = c("mean", "reps"),
   filter_params = NULL,
   scientific_10_y = TRUE,
@@ -25,8 +25,8 @@ plot_cleavage_site(
 
 \item{terminal}{Character. Which terminal(s) to plot: one of \code{"both"}, \code{"N"}, or \code{"C"}. Default \code{"both"}.}
 
-\item{measure}{Character. What to aggregate: \code{"intensity"} (sum of intensities per replicate) or \code{"count"}
-(number of peptides with non-zero intensity per replicate). Default \code{"intensity"}.}
+\item{measure}{Character. What to aggregate: \code{"intensity"} (sum of intensities per replicate) or \code{"type_num"}
+(number of unique peptide types with non-zero intensity per replicate). Default \code{"intensity"}.}
 
 \item{replicate_mode}{Character. How to handle replicates:
 \code{"mean"} (average replicate values within each group) or
@@ -54,7 +54,7 @@ otherwise a combined grob (two panels) when \code{terminal = "both"}.
 Visualize amino-acid preferences at peptide cleavage sites using sequence logos,
 aggregated from the \code{processPeptides()} result. You can plot the N- or
 C-terminal residue distribution (or both), measure either total intensity or
-peptide counts, average replicates or show each replicate separately, and
+peptide type numbers, average replicates or show each replicate separately, and
 optionally drop grouping columns that are constant after filtering so the
 x-axis only reflects variables that truly vary.
 }
@@ -79,7 +79,7 @@ p1 <- plot_cleavage_site(
 p2 <- plot_cleavage_site(
   result,
   terminal       = "C",
-  measure        = "count",
+  measure        = "type_num",
   replicate_mode = "reps"
 )
 

@@ -3,7 +3,7 @@
 #' @description
 #' Read peptide information from MaxQuant output file, intensity column meatadata, and protein mapping;
 #' filters out contaminants; computes per-replicate and per-group mean intensities;
-#' and counts peptides per replicate and per group .
+#' and computes peptide type numbers per replicate and per group.
 #' Map protein name and protein group, calculate GRAVY score.
 #'
 #' @param peptides_file
@@ -21,8 +21,8 @@
 #' * `dt.peptides.int`: Data.table with `Mean.Intensity` per group across replicates.
 #' * `dt.peptides.int.reps`: Data.table with `Intensity` per replicate per group.
 #' * `dt.peptides.int.ttest`: Data.table for potential t.test analysis. Zero values are not dropped.
-#' * `dt.peptides.count`: Counts of peptides per group in `dt.peptides.int`.
-#' * `dt.peptides.count.reps`: Counts of peptides per replicate per group in `dt.peptides.int.reps`.
+#' * `dt.peptides.typenum`: Numbers of unique peptide types per group in `dt.peptides.int`.
+#' * `dt.peptides.typenum.reps`: Numbers of unique peptide types per replicate per group in `dt.peptides.int.reps`.
 #' * `dt.int_col`: The intensity column metadata read from `intensity_columns_file`.
 #' * `grp_cols`: Character vector of grouping column names used.
 #' * `peptides_select_col.basic`: Character vector of basic peptide columns selected initially.
@@ -265,13 +265,13 @@ processPeptides <- function(peptides_file,
     dt.peptides.int.ttest[, (col) := factor(get(col), levels = levels_vec)]
   }
 
-  # 9. compute count of peptides per Length, Protein.name, Protein.group, grp_cols, annd/or Replicate
-  dt.peptides.count <- dt.peptides.int[
-    , .(Mean.Count = .N)
+  # 9. compute peptide type numbers per Length, Protein.name, Protein.group, grp_cols, and/or Replicate
+  dt.peptides.typenum <- dt.peptides.int[
+    , .(Mean.Peptides.type.number = .N)
     , by = c("Length", "Protein.name", "Protein.group", grp_cols)
   ]
-  dt.peptides.count.reps <- dt.peptides.int.reps[
-    , .(Count = .N)
+  dt.peptides.typenum.reps <- dt.peptides.int.reps[
+    , .(Peptides.type.number = .N)
     , by = c("Length", "Protein.name", "Protein.group", "Replicate", grp_cols)
   ]
 
@@ -286,8 +286,8 @@ processPeptides <- function(peptides_file,
     dt.peptides.int           = dt.peptides.int,
     dt.peptides.int.reps      = dt.peptides.int.reps,
     dt.peptides.int.ttest     = dt.peptides.int.ttest,
-    dt.peptides.count         = dt.peptides.count,
-    dt.peptides.count.reps    = dt.peptides.count.reps,
+    dt.peptides.typenum       = dt.peptides.typenum,
+    dt.peptides.typenum.reps  = dt.peptides.typenum.reps,
     dt.int_col                = dt.int_col,
     grp_cols                  = grp_cols,
     peptides_select_col.basic = peptides_select_col.basic
