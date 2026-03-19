@@ -34,7 +34,7 @@ BiocManager::install("limma")
 
 ### 1) Data processing --- `processPeptides()`
 
--   Import MaxQuant *peptides* file, intensity-column metadata, and protein mapping.
+-   Import MaxQuant *peptides.txt* file, intensity-column metadata, and protein mapping.
 -   Automatically remove contaminants and reverse sequences.
 -   Compute replicate- and group-level mean intensities and peptide counts.
 -   Map parent protein name and protein group for each peptide.
@@ -42,7 +42,7 @@ BiocManager::install("limma")
 
 ### 2) Filtering & statistics
 
--   **PCA** analysis to pre-check group separation --- `pcaPeptides()`.
+-   PCA analysis to pre-check group separation --- `pcaPeptides()`.
 -   Subset by sequence, regex pattern, or grouping variables --- `filterPeptides()`.
 -   Compare specific groups using statistical analysis to identify significantly different peptides with --- `ttestPeptides()`.
 
@@ -131,10 +131,11 @@ p_align <- plot_pep_align(
   protein_name  = "P02662",
   filter_params = list(Digest.stage = "G120"),
   x_interval    = 5,
-  x_range       = c(60, 85),
+  x_range       = c(80, 165),
   y_range       = c(0, 12)
 )
 ```
+
 ```{r, warning=FALSE, echo=FALSE}
 #| fig-width: !expr attr(p_align, "suggested_fig_width")
 #| fig-height: !expr attr(p_align, "suggested_fig_height")
@@ -143,7 +144,7 @@ p_align
 
 ### 5) Cleavage-site intensity (N and/or C termini)
 
-```{r}
+```{r warning=FALSE}
 plot_cleavage_site(
   result,
   terminal              = "both",       # "N", "C", or "both"

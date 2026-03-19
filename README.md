@@ -34,7 +34,7 @@ BiocManager::install("limma")
 
 ### 1) Data processing — `processPeptides()`
 
-- Import MaxQuant *peptides* file, intensity-column metadata, and
+- Import MaxQuant *peptides.txt* file, intensity-column metadata, and
   protein mapping.
 - Automatically remove contaminants and reverse sequences.
 - Compute replicate- and group-level mean intensities and peptide
@@ -44,7 +44,7 @@ BiocManager::install("limma")
 
 ### 2) Filtering & statistics
 
-- **PCA** analysis to pre-check group separation — `pcaPeptides()`.
+- PCA analysis to pre-check group separation — `pcaPeptides()`.
 - Subset by sequence, regex pattern, or grouping variables —
   `filterPeptides()`.
 - Compare specific groups using statistical analysis to identify
@@ -147,7 +147,7 @@ p_align <- plot_pep_align(
   protein_name  = "P02662",
   filter_params = list(Digest.stage = "G120"),
   x_interval    = 5,
-  x_range       = c(60, 85),
+  x_range       = c(80, 165),
   y_range       = c(0, 12)
 )
 ```
@@ -184,10 +184,10 @@ Three files are required:
 
 Example:
 
-| Sequence | Leading razor protein | Length | Start position | End position | Amino acid before | First amino acid | Last amino acid | Amino acid after | Intensity Sample1_1 | Intensity Sample1_2 | Intensity Sample2_1 |
-|----|----|----|----|----|----|----|----|----|----|----|----|
-| AAGGPGAPADPGRPT | P81265 | 15 | 609 | 623 | D | A | T | G | 40332000 | 51443000 | 39094000 |
-| AAIDEASKKLNAQ | P15497 | 13 | 253 | 265 | L | A | Q | – | 18167000 | 26893000 | 17524000 |
+| Sequence        | Leading razor protein | Length | Start position | End position | Amino acid before | First amino acid | Last amino acid | Amino acid after | Intensity Sample1_1 | Intensity Sample1_2 | Intensity Sample2_1 |
+|-----------------|-----------------------|--------|----------------|--------------|-------------------|------------------|-----------------|------------------|---------------------|---------------------|---------------------|
+| AAGGPGAPADPGRPT | P81265                | 15     | 609            | 623          | D                 | A                | T               | G                | 40332000            | 51443000            | 39094000            |
+| AAIDEASKKLNAQ   | P15497                | 13     | 253            | 265          | L                 | A                | Q               | –                | 18167000            | 26893000            | 17524000            |
 
 ### 2) Intensity-column metadata (`intensity_columns_file`)
 
