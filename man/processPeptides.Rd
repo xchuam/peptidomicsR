@@ -23,8 +23,8 @@ A named list with the following elements:
 \item \code{dt.peptides.int}: Data.table with \code{Mean.Intensity} per group across replicates.
 \item \code{dt.peptides.int.reps}: Data.table with \code{Intensity} per replicate per group.
 \item \code{dt.peptides.int.ttest}: Data.table for potential t.test analysis. Zero values are not dropped.
-\item \code{dt.peptides.count}: Counts of peptides per group in \code{dt.peptides.int}.
-\item \code{dt.peptides.count.reps}: Counts of peptides per replicate per group in \code{dt.peptides.int.reps}.
+\item \code{dt.peptides.typenum}: Numbers of unique peptide types per group in \code{dt.peptides.int}.
+\item \code{dt.peptides.typenum.reps}: Numbers of unique peptide types per replicate per group in \code{dt.peptides.int.reps}.
 \item \code{dt.int_col}: The intensity column metadata read from \code{intensity_columns_file}.
 \item \code{grp_cols}: Character vector of grouping column names used.
 \item \code{peptides_select_col.basic}: Character vector of basic peptide columns selected initially.
@@ -33,7 +33,7 @@ A named list with the following elements:
 \description{
 Read peptide information from MaxQuant output file, intensity column meatadata, and protein mapping;
 filters out contaminants; computes per-replicate and per-group mean intensities;
-and counts peptides per replicate and per group .
+and computes peptide type numbers per replicate and per group.
 Map protein name and protein group, calculate GRAVY score.
 }
 \examples{

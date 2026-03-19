@@ -1,39 +1,11 @@
-#' Plot peptide counts with optional scientific notation y-axis, flexible filtering and faceting
+#' Plot peptide type numbers (deprecated wrapper)
 #'
 #' @description
-#' Generates stacked‐bar charts of peptide counts (per‐replicate or group‐mean)
-#' with:
-#' * User‐defined inclusion filters on any grouping columns,
-#' * Dynamic x‐axis chosen from grouping variables,
-#' * Flexible coloring by protein group or protein name,
-#' * Optional scientific notationn of the y‐axis,
-#' * Flexible faceting by one or more grouping variables.
+#' \code{plot_count()} is kept for backward compatibility, but it has been replaced by
+#' \code{plot_type_num()}. It plots numbers of unique peptide types using the same
+#' functionality as \code{plot_type_num()}.
 #'
-#' @param result List. Output of \code{processPeptides()}, containing at least:
-#'   \itemize{
-#'     \item \code{dt.peptides.count.reps}: replicate counts,
-#'     \item \code{dt.peptides.count}: mean counts,
-#'     \item \code{grp_cols}: character vector of grouping column names.
-#'   }
-#' @param type Character. Which table to plot: \code{"reps"} (replicate‐level) or \code{"mean"} (group‐mean). Default: \code{"mean"}.
-#' @param x_var Character. Name of the grouping column to use on the x‐axis.
-#'   Must be one of \code{result$grp_cols} (and for \code{type="reps"} may also be \code{"Replicate"}).
-#'   Defaults to the first element of \code{result$grp_cols}.
-#' @param color_by Character. Fill aesthetic: \code{"Protein.group"}, \code{"Protein.name"}, or \code{"none"}.
-#'   Default: \code{"Protein.group"}.
-#' @param filter_params Named list, or \code{NULL}.  Each element’s name is a grouping column,
-#'   and its value is a vector of values to include.  Multiple names impose an AND filter.
-#'   For example: \code{list(Yogurt = c("Y1","Y2"), Digest.stage = "G120")}
-#'   Default: \code{NULL} (no filtering).
-#' @param facet_rows Character(1) or \code{NULL}.  Name of grouping column(s) for row facets.
-#'   You can combine multiple variables with a plus: e.g.
-#'   \code{"Yogurt+Digest.stage"}.  Default: \code{NULL}.
-#' @param facet_cols Character(1) or \code{NULL}.  Name of grouping column(s) for column facets.
-#'   Defaults to \code{"Replicate"} if \code{type = "reps"} and not explicitly set.
-#'   You can combine multiple variables with a plus, e.g.
-#'   \code{"Yogurt+Replicate"}.  Default: \code{NULL}.
-#' @param scientific_10_y Logical.  If \code{TRUE}, use scientific notation for y-axis.
-#'   Default: \code{TRUE}.
+#' @inheritParams plot_type_num
 #'
 #' @return A \code{ggplot} object.
 #'
@@ -44,140 +16,32 @@
 #'   intensity_columns_file = "data/Intensity_columns.csv",
 #'   protein_mapping_file   = "data/protein_mapping.csv"
 #' )
-#' # 1) Simple replicate‐level, default x, default facet="Replicate"
-#' p1 <- plot_count(result, type = "reps")
 #'
-#' # 2) Simple mean‐level, x = Yogurt, color by Protein.name
-#' p2 <- plot_count(result,
-#'                 type           = "mean",
-#'                 x_var          = "Yogurt",
-#'                 color_by       = "Protein.name")
-#'
-#' # 3) Filter Yogurt == "Y1" AND Digest.stage == "I120", scientific notation y, default mean‐level
-#' p3 <- plot_count(
-#'   result,
-#'   filter_params = list(Yogurt = "Y1", Digest.stage = "I120"),
-#'   scientific_10_y = TRUE
-#' )
-#'
-#' # 4) Multi-variable faceting: rows = Digest.stage, cols = Yogurt+Replicate
-#' p4 <- plot_count(
-#'   result,
-#'   type        = "reps",
-#'   facet_rows  = "Digest.stage",
-#'   facet_cols  = "Yogurt+Replicate"
-#' )
+#' plot_count(result, type = "reps")
 #' }
 #'
-#' @import ggplot2
-#' @import data.table
-#' @importFrom ggpubr theme_pubr
-#' @importFrom scales scientific_format
 #' @export
 plot_count <- function(result,
-                       type           = c("mean", "reps"),
-                       x_var          = NULL,
-                       color_by       = "Protein.group",
-                       filter_params  = NULL,
-                       facet_rows     = NULL,
-                       facet_cols     = NULL,
+                       type             = c("mean", "reps"),
+                       x_var            = NULL,
+                       color_by         = "Protein.group",
+                       filter_params    = NULL,
+                       facet_rows       = NULL,
+                       facet_cols       = NULL,
                        scientific_10_y  = FALSE) {
-  type <- match.arg(type)
+  warning(
+    "plot_count() is deprecated and has been replaced by plot_type_num(). Please use plot_type_num() instead.",
+    call. = FALSE
+  )
 
-  # choose data
-  dt <- switch(type,
-               reps = copy(result$dt.peptides.count.reps),
-               mean = copy(result$dt.peptides.count))
-  grp_cols <- result$grp_cols
-
-  # default x_var
-  if (is.null(x_var)) {
-    x_var <- grp_cols[1]
-  }
-  # validate x_var
-  if (type == "reps") {
-    if (!x_var %in% c("Replicate", grp_cols)) {
-      stop("For type = 'reps', x_var must be 'Replicate' or one of result$grp_cols")
-    }
-  } else {
-    if (!x_var %in% grp_cols) {
-      stop("For type = 'mean', x_var must be one of result$grp_cols")
-    }
-  }
-
-  # default color_by
-  if (!color_by %in% c("Protein.group","Protein.name","none")) {
-    stop("color_by must be 'Protein.group', 'Protein.name', or 'none'.")
-  }
-
-  # apply filters
-  if (!is.null(filter_params)) {
-    stopifnot(is.list(filter_params))
-    for (col in names(filter_params)) {
-      dt <- dt[get(col) %in% filter_params[[col]]]
-    }
-  }
-
-  # set default facet_cols for replicate-level
-  if (type == "reps" &&
-      x_var != "Replicate" &&
-      (is.null(facet_rows) || !grepl("Replicate", facet_rows)) &&
-      is.null(facet_cols)) {
-    facet_cols <- "Replicate"
-  }
-
-  # set y variable
-  y_var <- if (type == "reps") "Count" else "Mean.Count"
-
-  # build the plot
-  if (color_by == "none") {
-    p <- ggplot(dt, aes(x = .data[[x_var]],
-                        y = .data[[y_var]])) +
-      geom_bar(stat = "identity", position = "stack",fill = def_color)+
-      theme_pubr()
-  } else {
-    p <- ggplot(dt, aes(x = .data[[x_var]],
-                        y = .data[[y_var]],
-                        fill = .data[[color_by]])) +
-      geom_bar(stat = "identity", position = "stack") +
-      scale_fill_manual(values = protein_color)+
-      theme_pubr()
-  }
-
-  # optional log scale
-  if (scientific_10_y) {
-    p <- p + scale_y_continuous(
-      labels = scientific_10
-    )
-  }
-
-  # faceting
-  if (!is.null(facet_rows) || !is.null(facet_cols)) {
-    rows <- if (!is.null(facet_rows)) facet_rows else "."
-    cols <- if (!is.null(facet_cols)) facet_cols else "."
-    p <- p + facet_grid(as.formula(paste(rows, "~", cols)))
-  }
-
-  # warn if any multi‐level group‐vars aren’t being distinguished anywher
-  # build the full set of group‐vars we’d ideally split on
-  vars_distinct <- grp_cols
-  if (type == "reps") vars_distinct <- c(vars_distinct, "Replicate")
-  # drop any that no longer vary in the data (only one unique value)
-  vars_vary <- vars_distinct[
-    sapply(vars_distinct, function(v) length(unique(dt[[v]])) > 1)]
-  # collect what the user is actually splitting by
-  used_vars <- x_var
-  if (!is.null(facet_rows)) used_vars <- c(used_vars, strsplit(facet_rows, "\\+")[[1]])
-  if (!is.null(facet_cols)) used_vars <- c(used_vars, strsplit(facet_cols, "\\+")[[1]])
-  used_vars <- unique(used_vars)
-  # find which truly‐varying group‐vars are missing
-  missing_vars <- setdiff(vars_vary, used_vars)
-  if (length(missing_vars)) {
-    warning(sprintf(
-      "Grouping variable(s) %s not used in x_var/facets; data may be aggregated across them.",
-      paste(missing_vars, collapse = ", ")
-    ))
-  }
-
-  p
+  .plot_type_num_impl(
+    result          = result,
+    type            = type,
+    x_var           = x_var,
+    color_by        = color_by,
+    filter_params   = filter_params,
+    facet_rows      = facet_rows,
+    facet_cols      = facet_cols,
+    scientific_10_y = scientific_10_y
+  )
 }
