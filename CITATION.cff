@@ -41,7 +41,7 @@ contact:
 preferred-citation:
   type: software
   title: "peptidomicsR"
-  version: "1.1.1"
+  version: "1.1.1-alpha"
   authors:
     - family-names: Ma
       given-names: Xuchuan
@@ -49,4 +49,4 @@ preferred-citation:
     - family-names: Ren
       given-names: Qing
       orcid: "https://orcid.org/0000-0003-3479-6679"
-  year: 2025
+  year: 2026
