@@ -241,7 +241,7 @@ processPeptides(
 
 If you use **peptidomicsR** in your work, please cite this repository:
 
-*Ma, X., & Ren, Q. (2025). peptidomicsR (Version 1.1.1-alpha) \[Computer
+*Ma, X., & Ren, Q. (2026). peptidomicsR (Version 1.1.1-alpha) \[Computer
 software\]*
 
 ------------------------------------------------------------------------
